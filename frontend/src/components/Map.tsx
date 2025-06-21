@@ -26,8 +26,13 @@ export default function Map({ onSTLGenerated }: MapProps) {
 
     const drawControl = new L.Control.Draw({
       draw: {
-        polygon: {},
-        rectangle: {},
+        polygon: false,
+        rectangle: {
+          shapeOptions: {
+            color: '#3388ff',
+            weight: 2
+          }
+        },
         marker: false,
         circle: false,
         polyline: false,
