@@ -3,12 +3,14 @@ import sys
 import osmnx as ox
 import shapely
 import trimesh
+import geopandas as gpd
 
 try:
     data = json.load(sys.stdin)
     geometry = shapely.geometry.shape(data['geometry'])
 
-    buildings = ox.geometries_from_polygon(geometry, tags={'buildings': True})
+    tags = {"building": True}
+    buildings = ox.features_from_polygon(geometry, tags={'buildings': True})
     meshes = []
 
     for _, row in buildings.iterrows():
