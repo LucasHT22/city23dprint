@@ -3,7 +3,6 @@ import sys
 import osmnx as ox
 import shapely
 import trimesh
-import io
 
 try:
     data = json.load(sys.stdin)

@@ -53,7 +53,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
 
       fetch('http://localhost:3001/generate-model', {
         method: 'POST',
-        headers: { 'Content-Type': 'applicatin/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ geojson })
       })
       .then((res) => {

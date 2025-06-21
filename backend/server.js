@@ -26,7 +26,7 @@ app.post('/generate-model', (req, res) => {
         if (code !== 0) {
             console.error('Python error: ', errorOutput);
             return res.status(500).send({
-                error: 'Error generating STL',
+                error: 'Error generating STL1',
                 details: errorOutput,
             });
         } 

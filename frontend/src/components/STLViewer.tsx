@@ -4,7 +4,7 @@ import { OrbitControls, STLLoader } from 'three-stdlib';
 
 export default function STLViewer({ updateKey }: { updateKey: number }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [loaded, setLoaded] = useState(false); 
+    const [stlBlob, setstlBlob] = useState<Blob | null>(null); 
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -30,45 +30,54 @@ export default function STLViewer({ updateKey }: { updateKey: number }) {
     controls.dampingFactor = 0.1;
     controls.autoRotate = true;
 
-    const loader = new STLLoader();
-    loader.load('/model.stl', geometry => {
-        const material = new THREE.MeshNormalMaterial();
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
+    fetch('http://localhost:3001/generate-model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ geojson: null })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load STL');
+        return res.blob();
+      })
+      .then(blob => {
+        setstlBlob(blob);
+        const url = URL.createObjectURL(blob);
+        const loader = new STLLoader();
+        loader.load(url, geometry => {
+            const material = new THREE.MeshNormalMaterial();
+            const mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
 
-        const box = new THREE.Box3().setFromObject(mesh);
-        const center = box.getCenter(new THREE.Vector3());
-        mesh.position.sub(center);
-        camera.position.set(0, 0, box.getSize(new THREE.Vector3()).length() * 1.5);
-        controls.update();
-
-        setLoaded(true);
-
-        const animate = () => {
-            requestAnimationFrame(animate);
+            const box = new THREE.Box3().setFromObject(mesh);
+            const center = box.getCenter(new THREE.Vector3());
+            mesh.position.sub(center);
+            camera.position.set(0, 0, box.getSize(new THREE.Vector3()).length() * 1.5);
             controls.update();
-            renderer.render(scene, camera);
-      };
 
-      animate();
-    }, 
-    undefined,
-    err => {
-        console.error("ERROR: " + err);
-    });
-    }, [updateKey]);
+            const animate = () => {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            };
+            animate();
+        });
+      })
+      .catch(console.error);
+    }, [updateKey]); 
 
     const handleDownload = () => {
-        const link = document.createElement('a');
-        link.href = '/model.stl';
-        link.download = 'model.stl';
-        link.click();
+        if (!stlBlob) return;
+        const url = URL.createObjectURL(stlBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'model.stl';
+        a.click();
     };
 
   return (
     <div>
         <canvas ref={canvasRef} style={{ width: '100%', height: '600px' }} />
-        {loaded && (
+        {stlBlob && (
             <button
                 onClick={handleDownload}
                 style={{
