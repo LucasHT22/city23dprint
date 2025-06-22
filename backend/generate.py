@@ -9,8 +9,14 @@ try:
     data = json.load(sys.stdin)
     geometry = shapely.geometry.shape(data['geometry'])
 
+    if not geometry.is_valid:
+        geometry = geometry.buffer(0)
+    
+    if not geometry.is_valid:
+        raise Exception("Invalid geometry.")
+
     tags = {"building": True}
-    buildings = ox.features_from_polygon(geometry, tags={'buildings': True})
+    buildings = ox.features_from_polygon(geometry, tags={'building': True})
     meshes = []
 
     for _, row in buildings.iterrows():
@@ -19,7 +25,9 @@ try:
             base = trimesh.creation.extrude_polygon(geom, height=10)
             meshes.append(base)
         elif geom.geom_type == 'MultiPolygon':
-            for poly in geom:
+            for poly in geom.geoms:
+                if not poly.is_valid:
+                    continue
                 base = trimesh.creation.extrude_polygon(poly, height=10)
                 meshes.append(base)
     

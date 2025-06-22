@@ -5,12 +5,12 @@ import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 
 type MapProps = {
-  onSTLGenerated: () => void;
+  onSTLGenerated: (blob: Blob) => void;
 }
 
 export default function Map({ onSTLGenerated }: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
-  const [geojson, setGeojson] = useState(null);
+  const [geojson, setGeojson] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
         rectangle: {
           shapeOptions: {
             color: '#3388ff',
-            weight: 2
+            weight: 5
           }
         },
         marker: false,
@@ -64,7 +64,10 @@ export default function Map({ onSTLGenerated }: MapProps) {
       .then((res) => {
         if (!res.ok) throw new Error('Erros generating');
         console.log('Generated!');
-        onSTLGenerated?.();
+        return res.blob();
+      })
+      .then((blob) => {
+        onSTLGenerated(blob);
       })
       .catch((err) => {
         console.error('ERROR: ', err);

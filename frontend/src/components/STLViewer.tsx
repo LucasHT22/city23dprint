@@ -2,12 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls, STLLoader } from 'three-stdlib';
 
-export default function STLViewer({ updateKey }: { updateKey: number }) {
+export default function STLViewer({ stlBlob }: { stlBlob: Blob | null }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [stlBlob, setstlBlob] = useState<Blob | null>(null); 
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!stlBlob || !canvasRef.current) return;
 
     const width = canvasRef.current.clientWidth;
     const height = canvasRef.current.clientHeight;
@@ -30,40 +29,31 @@ export default function STLViewer({ updateKey }: { updateKey: number }) {
     controls.dampingFactor = 0.1;
     controls.autoRotate = true;
 
-    fetch('http://localhost:3001/generate-model', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ geojson: null })
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load STL');
-        return res.blob();
-      })
-      .then(blob => {
-        setstlBlob(blob);
-        const url = URL.createObjectURL(blob);
-        const loader = new STLLoader();
-        loader.load(url, geometry => {
-            const material = new THREE.MeshNormalMaterial();
-            const mesh = new THREE.Mesh(geometry, material);
-            scene.add(mesh);
+    const url = URL.createObjectURL(stlBlob);
+    const loader = new STLLoader();
 
-            const box = new THREE.Box3().setFromObject(mesh);
-            const center = box.getCenter(new THREE.Vector3());
-            mesh.position.sub(center);
-            camera.position.set(0, 0, box.getSize(new THREE.Vector3()).length() * 1.5);
+    loader.load(url, geometry => {
+        const material = new THREE.MeshNormalMaterial();
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        const box = new THREE.Box3().setFromObject(mesh);
+        const center = box.getCenter(new THREE.Vector3());
+        mesh.position.set(0, 0, box.getSize(new THREE.Vector3()).length() * 1.5);
+        controls.update();
+
+        const animate = () => {
+            requestAnimationFrame(animate);
             controls.update();
-
-            const animate = () => {
-                requestAnimationFrame(animate);
-                controls.update();
-                renderer.render(scene, camera);
-            };
-            animate();
-        });
-      })
-      .catch(console.error);
-    }, [updateKey]); 
+            renderer.render(scene, camera);
+        };
+        animate();
+    });
+    return () => {
+        renderer.dispose();
+        URL.revokeObjectURL(url);
+    };
+  }, [stlBlob]);
 
     const handleDownload = () => {
         if (!stlBlob) return;
