@@ -8,8 +8,11 @@ app.use(express.json({ limit: '10mb' }));
 
 app.post('/generate-model', (req, res) => {
     const geojson = req.body.geojson;
+    
     if (!geojson) return res.status(400).json({ error: 'empty GeoJSON' });
-
+    
+    console.log("GEOJSON:", JSON.stringify(geojson, null, 2));
+  
     const python = spawn('python', ['generate.py']);
     let stlBuffer = Buffer.alloc(0);
     let errorOutput = '';

@@ -47,6 +47,15 @@ export default function Map({ onSTLGenerated }: MapProps) {
       const layer = event.propagatedFrom ?? event.layer;
       drawnItems.addLayer(layer);
       const geo = layer.toGeoJSON();
+
+      const coords = geo.geometry.coordinates[0];
+      const allEqual = coords.every(
+        ([lng, lat]: [number, number]) => lng === coords[0][0] && lat === coords[0][1]
+      );
+      if (allEqual) {
+        alert('Invalid area: select a real rectangle');
+        return;
+      }
       setGeojson(geo);
     });
   }, []);
