@@ -3,6 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
+import osmtogeojson from 'osmtogeojson';
 
 type MapProps = {
   onSTLGenerated: (blob: Blob) => void;
@@ -12,6 +13,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const [geojson, setGeojson] = useState<any>(null);
   const [generating, setGenerating] = useState(false);
+  const [loadingBuildings, setLoadingBuildings] = useState(false);
 
   useEffect(() => {
     const map = L.map('map').setView([-23.5505, -46.6333], 13);
@@ -56,9 +58,60 @@ export default function Map({ onSTLGenerated }: MapProps) {
         alert('Invalid area: select a real rectangle');
         return;
       }
-      setGeojson(geo);
+
+      setLoadingBuildings(true);
+      try {
+        const buildingsGeoJSON = await fetchBuildingsFromOverpass(drawnGeo.geometry);
+        if (!buildingsGeoJSON.features || buildingsGeoJSON.features.length === 0) {
+          alert('No buildings found in the selected area.');
+          setGeojson(null);
+          return;
+        }
+        setGeojson(buildingsGeoJSON);
+      } catch (err) {
+        console.error('Error fetching buildings: ', err);
+        alert('Error fetching buildings data.');
+        setGeojson(null);
+      } finally {
+        setLoadingBuildings(false);
+      }
     });
   }, []);
+
+async function fetchBuildingsFromOverpass(polygonGeometry:GeoJSON.Polygon) {
+  const coords = polygonGeometry.coordinates[0];
+  const lats = coords.map(c => c[1]);
+  const lngs = coords.map(c => c[0]);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+
+  const query = `
+    [out:json][timeout:25];
+    (
+      way["building"](${minLat},${minLng},${maxLat},${maxLng});
+      ralation["building"](${minLat},${minLng},${maxLat},${maxLng});
+    );
+    out body;
+    >;
+    out skel qt;
+  `;
+
+  const response = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    body: query
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Overpass API error: ${response.statusText}`);
+  }
+
+  const osmData = await response.json();
+
+  const geojson = osmtogeojson(osmData);
+  return geojson;
+}
 
   const handleGenerateSTL = () => {
     if (!geojson) return;

@@ -32,7 +32,7 @@ export default function STLViewer({ stlBlob }: { stlBlob: Blob | null }) {
     const url = URL.createObjectURL(stlBlob);
     const loader = new STLLoader();
 
-    loader.load(url, geometry => {
+    loader.load(url, (geometry: THREE.BufferGeometry<THREE.NormalBufferAttributes> | undefined) => {
         const material = new THREE.MeshNormalMaterial();
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
