@@ -59,22 +59,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
         return;
       }
 
-      setLoadingBuildings(true);
-      try {
-        const buildingsGeoJSON = await fetchBuildingsFromOverpass(drawnGeo.geometry);
-        if (!buildingsGeoJSON.features || buildingsGeoJSON.features.length === 0) {
-          alert('No buildings found in the selected area.');
-          setGeojson(null);
-          return;
-        }
-        setGeojson(buildingsGeoJSON);
-      } catch (err) {
-        console.error('Error fetching buildings: ', err);
-        alert('Error fetching buildings data.');
-        setGeojson(null);
-      } finally {
-        setLoadingBuildings(false);
-      }
+      setGeojson(geo);
     });
   }, []);
 
@@ -113,29 +98,36 @@ async function fetchBuildingsFromOverpass(polygonGeometry:GeoJSON.Polygon) {
   return geojson;
 }
 
-  const handleGenerateSTL = () => {
+  const handleGenerateSTL = async () => {
     if (!geojson) return;
 
     setGenerating(true);
+    setLoadingBuildings(true);
 
-      fetch('http://localhost:3001/generate-model', {
+    try {
+      const buildingsGeoJSON = await fetchBuildingsFromOverpass(geojson.geometry);
+
+      if (!buildingsGeoJSON.features || buildingsGeoJSON.features.length === 0) {
+        alert('No buildings found in the area.');
+        return;
+      }
+
+      const response = await fetch('http://localhost:3001/generate-model', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ geojson })
-      })
-      .then((res) => {
-        if (!res.ok) throw new Error('Erros generating');
-        console.log('Generated!');
-        return res.blob();
-      })
-      .then((blob) => {
-        onSTLGenerated(blob);
-      })
-      .catch((err) => {
+        body: JSON.stringify(buildingsGeoJSON)
+      });
+
+      if (!response.ok) throw new Error('Error generating STL');
+      const blob = await response.blob();
+      onSTLGenerated(blob);
+      } catch (err) {
         console.error('ERROR: ', err);
         alert('Error generating STL!');
-      })
-      .finally(() => setGenerating(false));
+      } finally {
+        setGenerating(false);
+        setLoadingBuildings(false);
+      }
   };
 
   return (
