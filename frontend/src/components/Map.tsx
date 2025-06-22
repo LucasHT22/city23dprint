@@ -44,7 +44,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
     });
     map.addControl(drawControl);
 
-    map.on(L.Draw.Event.CREATED, function (event) {
+    map.on(L.Draw.Event.CREATED, async function (event) {
       drawnItems.clearLayers();
       const layer = event.propagatedFrom ?? event.layer;
       drawnItems.addLayer(layer);
@@ -91,7 +91,7 @@ async function fetchBuildingsFromOverpass(polygonGeometry:GeoJSON.Polygon) {
     [out:json][timeout:25];
     (
       way["building"](${minLat},${minLng},${maxLat},${maxLng});
-      ralation["building"](${minLat},${minLng},${maxLat},${maxLng});
+      relation["building"](${minLat},${minLng},${maxLat},${maxLng});
     );
     out body;
     >;

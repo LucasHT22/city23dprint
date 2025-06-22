@@ -5,28 +5,34 @@ import shapely
 import trimesh
 import geopandas as gpd
 from shapely.ops import transform
+from shapely.geometry import shape
 import pyproj
 
 try:
     data = json.load(sys.stdin)
-    geometry = shapely.geometry.shape(data['geometry'])
-
-    if not geometry.is_valid:
-        geometry = geometry.buffer(0)
-    if not geometry.is_valid or geometry.is_empty:
-        raise Exception("Invalid geometry.")
     
-    proj_latlon = pyproj.CRS("EPSG:4326")
-    utm_zone = ox.projection.project_geometry(geometry, to_crs='utm')
-    geometry_utm = utm_zone[0]
+    if 'features' not in data or not data['features']:
+        raise Exception("No features in GeoJSON")
+    
+    gdf = gpd.GeoDataFrame.from_features(data["features"])
 
-    print("Geometry:", geometry_utm)
+    unified_geom = gdf.unary_union
+
+    if not unified_geom.is_valid:
+        unified_geom = unified_geom.buffer(0)
+    
+    if not unified_geom.is_valid or unified_geom.is_empty:
+        raise Exception("Invalid or empty geometry")
+
+    geometry_utm, utm_crs = ox.projection.project_geometry(unified_geom)
 
     tags = {"building": True}
-    buildings = ox.features_from_polygon(geometry_utm, tags={'building': True})
+    buildings = ox.features_from_polygon(geometry_utm, tags=tags)
     if buildings.empty:
         raise Exception("No buildings found in the area")
 
+    buildings = buildings.to_crs(utm_crs)
+    
     meshes = []
 
     for _, row in buildings.iterrows():
