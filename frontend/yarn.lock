@@ -520,6 +520,173 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@jscad/3mf-serializer@2.1.14":
+  version "2.1.14"
+  resolved "https://registry.yarnpkg.com/@jscad/3mf-serializer/-/3mf-serializer-2.1.14.tgz#ca0a130b1bda1af5e89e7c2dd8e3ee81b4c9e843"
+  integrity sha512-Jq/32x9gYbKpaL4Y4ny2ReQnGMeE+ygEMjZP/SILcUZg92G5/95mFmoOy9aoiXykF44jolzH4lgvlUF57JEhMQ==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/modeling" "2.12.5"
+    fflate "0.7.3"
+    onml "1.2.0"
+
+"@jscad/amf-deserializer@2.3.10":
+  version "2.3.10"
+  resolved "https://registry.yarnpkg.com/@jscad/amf-deserializer/-/amf-deserializer-2.3.10.tgz#51f6be3e21bf313c4ed75916e963fc793e6c5694"
+  integrity sha512-jOGsghWefoNloD/4e+Qr4Q0eTcAv7ARfRZNb0hvupFytwnETrsG34TlvD+eLrny7ZupPlFKsyYuNo9gzeZtqrQ==
+  dependencies:
+    "@jscad/io-utils" "2.0.30"
+    "@jscad/modeling" "2.12.5"
+    saxes "5.0.1"
+
+"@jscad/amf-serializer@2.1.20":
+  version "2.1.20"
+  resolved "https://registry.yarnpkg.com/@jscad/amf-serializer/-/amf-serializer-2.1.20.tgz#94402dc8a47f2e9ad237f68ec55513ba54af152b"
+  integrity sha512-eF9zrskgTnIomTb2sjrNU6iqC1ONvBDpet1KZ+1N5UY8GKyyIIrFwFVcwitjtdjHtQ1/6AFxD8Kk4rhhm5GSxA==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/modeling" "2.12.5"
+    onml "1.3.0"
+
+"@jscad/array-utils@2.1.4":
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/@jscad/array-utils/-/array-utils-2.1.4.tgz#05e93c7c0ccaab8fa5e81e3ec685aab9c41e7075"
+  integrity sha512-c31r4zSKsE+4Xfwk2V8monDA0hx5G89QGzaakWVUvuGNowYS9WSsYCwHiTIXodjR+HEnDu4okQ7k/whmP0Ne2g==
+
+"@jscad/dxf-deserializer@2.3.27":
+  version "2.3.27"
+  resolved "https://registry.yarnpkg.com/@jscad/dxf-deserializer/-/dxf-deserializer-2.3.27.tgz#37ee17c7e16e508caa6430a55219e4dc7dccade1"
+  integrity sha512-ltBpuBPmBOdYvy0RNUCyj5PYhHs1S/DhLjR6Cj0U9tybA6rpVxAoQ3NQ9WlQHDcDV+VRZ1EWJcHmPZLFkLB2mA==
+  dependencies:
+    "@jscad/io-utils" "2.0.30"
+    "@jscad/modeling" "2.12.5"
+
+"@jscad/dxf-serializer@2.1.20":
+  version "2.1.20"
+  resolved "https://registry.yarnpkg.com/@jscad/dxf-serializer/-/dxf-serializer-2.1.20.tgz#7e8911c7c113dd57dc2b25d9ec65c51b2d5f093d"
+  integrity sha512-4GvdaRn8TkelDFiJiSnsbD8lWBE18nowpCBTZ0jifEQYF4rZ3pViMQuq31ti2VTDjpMyJpBzEp9Xd4l2jiYhpQ==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/modeling" "2.12.5"
+
+"@jscad/io-utils@2.0.30":
+  version "2.0.30"
+  resolved "https://registry.yarnpkg.com/@jscad/io-utils/-/io-utils-2.0.30.tgz#2b99b8260854e27531589f6abf2906d1e6a12223"
+  integrity sha512-VL0eCrjYGp9Xj+/3G9ZzunnRmUQSyHB1+QIBw9ZQU4UJWo7HKlbgQ+kFwCT4EtKb7c+83eHWVBlH4Hvt7Znvug==
+
+"@jscad/io@^2.4.11":
+  version "2.4.11"
+  resolved "https://registry.yarnpkg.com/@jscad/io/-/io-2.4.11.tgz#2d04c6ee45bc1d43bfe78e5b0cba8ee412222d83"
+  integrity sha512-65x2HxJSb2IH1W2xWlfxOsf4BUSvxGcsZYIUE43CzAIy3053dYkg4dadbH7G6J3JgDdlSj7q+rXOO7j84ovI+w==
+  dependencies:
+    "@jscad/3mf-serializer" "2.1.14"
+    "@jscad/amf-deserializer" "2.3.10"
+    "@jscad/amf-serializer" "2.1.20"
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/dxf-deserializer" "2.3.27"
+    "@jscad/dxf-serializer" "2.1.20"
+    "@jscad/io-utils" "2.0.30"
+    "@jscad/json-deserializer" "2.0.31"
+    "@jscad/json-serializer" "2.0.30"
+    "@jscad/modeling" "2.12.5"
+    "@jscad/obj-deserializer" "2.0.30"
+    "@jscad/obj-serializer" "2.1.20"
+    "@jscad/stl-deserializer" "2.1.27"
+    "@jscad/stl-serializer" "2.1.20"
+    "@jscad/svg-deserializer" "2.5.11"
+    "@jscad/svg-serializer" "2.3.18"
+    "@jscad/x3d-deserializer" "2.2.10"
+    "@jscad/x3d-serializer" "2.4.10"
+
+"@jscad/json-deserializer@2.0.31":
+  version "2.0.31"
+  resolved "https://registry.yarnpkg.com/@jscad/json-deserializer/-/json-deserializer-2.0.31.tgz#f64d5e47b0cf3d4991c6e06b6ce6352be0ab3f18"
+  integrity sha512-d4C2mKWvc5xFt7KG5qkpUIh7HpZ+J2fpwg/IrCc7I1aKqVtyInf+zD5GxH0xB0dBeLLOsJMIYHvqmOfmSjj0rg==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/io-utils" "2.0.30"
+
+"@jscad/json-serializer@2.0.30":
+  version "2.0.30"
+  resolved "https://registry.yarnpkg.com/@jscad/json-serializer/-/json-serializer-2.0.30.tgz#e8741f23f1bf1c58973f321f066f7008683ecf10"
+  integrity sha512-Um37ml4MYFqw5rfqnItnLz4JNJLOhZONgWiIUkBUvgiD6cqiieEny9Sk3YeJuwkLoqrW9OT05JPv32MnT7u3eQ==
+  dependencies:
+    "@jscad/modeling" "2.12.5"
+
+"@jscad/modeling@2.12.5", "@jscad/modeling@^2.12.5":
+  version "2.12.5"
+  resolved "https://registry.yarnpkg.com/@jscad/modeling/-/modeling-2.12.5.tgz#dfb86557ae90f11f2b77a200697d628db20edc82"
+  integrity sha512-7deHWmE+CKBx2RyxDxl9Pie0bDOHHtcsh4V0gKViu27abYXKGl8+myoddwIvxLczwnw31ZZXDdUdm0Ef51YwQg==
+
+"@jscad/obj-deserializer@2.0.30":
+  version "2.0.30"
+  resolved "https://registry.yarnpkg.com/@jscad/obj-deserializer/-/obj-deserializer-2.0.30.tgz#fe6eabc30c22f76e5bb9eb40d343ac8bdf47abb4"
+  integrity sha512-uO5OwJXECLeRZHOxaf280FwCtR0319uzV+X5wgEPIoceuVNmTcus+BCs+ldNe4rmDWummVLreTQv1qkIt5u1Lg==
+  dependencies:
+    "@jscad/io-utils" "2.0.30"
+    "@jscad/modeling" "2.12.5"
+
+"@jscad/obj-serializer@2.1.20":
+  version "2.1.20"
+  resolved "https://registry.yarnpkg.com/@jscad/obj-serializer/-/obj-serializer-2.1.20.tgz#3248bcd0249c1f0d5835c3e228af8949e641f2a9"
+  integrity sha512-k3u5oE56kE37azocjxFEsBBLRZdTcfONX598anfunIcpn6+2IkZVMVE9OJtuoMd51mVDrjYc4+FLjZvtd6281Q==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/modeling" "2.12.5"
+
+"@jscad/stl-deserializer@2.1.27":
+  version "2.1.27"
+  resolved "https://registry.yarnpkg.com/@jscad/stl-deserializer/-/stl-deserializer-2.1.27.tgz#30582175aed9267beb254bde696912e0985dd9a5"
+  integrity sha512-rIRcSWkDIbFyo1iCOySimroaWNJdn1KR0B2rxBXI1XXoBTZ2jfENFgqDh/FamdxmyDavL7MNI/guJRbC/471Pg==
+  dependencies:
+    "@jscad/io-utils" "2.0.30"
+    "@jscad/modeling" "2.12.5"
+
+"@jscad/stl-serializer@2.1.20", "@jscad/stl-serializer@^2.1.20":
+  version "2.1.20"
+  resolved "https://registry.yarnpkg.com/@jscad/stl-serializer/-/stl-serializer-2.1.20.tgz#dafd9798bade70399136401616c150b7dd939a11"
+  integrity sha512-/hLO+eLsWDNLkAheZ8SoOCzj8wYWiHABbT/O5dhy+pyXT0mLKOv0dHV1Z8rYPySjhdxHcZ1Pzi3IF5bi+P/9bg==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/modeling" "2.12.5"
+
+"@jscad/svg-deserializer@2.5.11":
+  version "2.5.11"
+  resolved "https://registry.yarnpkg.com/@jscad/svg-deserializer/-/svg-deserializer-2.5.11.tgz#f9bda41bb38f547e080da8f5fad8ed04dfe906dd"
+  integrity sha512-D1heO5XbYg99rwnWS2MFv+GgORIslOStHLXqa0m/UqFaU4X6rY1SdOYBhWVL1abFvT3/pKfB0oCt6QIw8FdZCA==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/io-utils" "2.0.30"
+    "@jscad/modeling" "2.12.5"
+    saxes "5.0.1"
+
+"@jscad/svg-serializer@2.3.18":
+  version "2.3.18"
+  resolved "https://registry.yarnpkg.com/@jscad/svg-serializer/-/svg-serializer-2.3.18.tgz#5425ba16b1e2e1945313da91da2e700476fbfb9f"
+  integrity sha512-hWRGSMayD0m8otRU+PXJ0NbBlduS11CuSCj7xrmrzLclm9ICZANBR48Ea9H4yxtE4GTX1Wbs+wrnAikF4iw7NA==
+  dependencies:
+    "@jscad/modeling" "2.12.5"
+    onml "1.3.0"
+
+"@jscad/x3d-deserializer@2.2.10":
+  version "2.2.10"
+  resolved "https://registry.yarnpkg.com/@jscad/x3d-deserializer/-/x3d-deserializer-2.2.10.tgz#cd8b73b867b166750adba37a9e1240a999ec8d88"
+  integrity sha512-eh9Tl4B2pVnEAsj3jbg5KM61u1IhHhaQ2mUZI82jdCV8re2q0yZjOYPJ1WmMBGEclur00DevA+aV6dz2Vx5zLQ==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/io-utils" "2.0.30"
+    "@jscad/modeling" "2.12.5"
+    saxes "5.0.1"
+
+"@jscad/x3d-serializer@2.4.10":
+  version "2.4.10"
+  resolved "https://registry.yarnpkg.com/@jscad/x3d-serializer/-/x3d-serializer-2.4.10.tgz#037eb944d38c82890680aaa278212246a4cd4c00"
+  integrity sha512-I6T4HR1pZsLL4C2m03fuZIQNynR2how1+tESekvMHkop2O8i51eYwH/+349KQvdMc5RlDYB0G0pjHQowdrh1bQ==
+  dependencies:
+    "@jscad/array-utils" "2.1.4"
+    "@jscad/modeling" "2.12.5"
+    onml "1.3.0"
+
 "@mapbox/geojson-rewind@0.5.2":
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/@mapbox/geojson-rewind/-/geojson-rewind-0.5.2.tgz#591a5d71a9cd1da1a0bf3420b3bea31b0fc7946a"
@@ -708,6 +875,200 @@
   dependencies:
     tslib "^2.8.0"
 
+"@turf/bbox@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/bbox/-/bbox-7.2.0.tgz#9db338d6407380f66a72050657f1998c5c5ccc4a"
+  integrity sha512-wzHEjCXlYZiDludDbXkpBSmv8Zu6tPGLmJ1sXQ6qDwpLE1Ew3mcWqt8AaxfTP5QwDNQa3sf2vvgTEzNbPQkCiA==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@turf/meta" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/boolean-crosses@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-crosses/-/boolean-crosses-7.2.0.tgz#48fbd37c51a0f1e1aa9cc75d5484e8441bb7f173"
+  integrity sha512-9GyM4UUWFKQOoNhHVSfJBf5XbPy8Fxfz9djjJNAnm/IOl8NmFUSwFPAjKlpiMcr6yuaAoc9R/1KokS9/eLqPvA==
+  dependencies:
+    "@turf/boolean-point-in-polygon" "^7.2.0"
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@turf/line-intersect" "^7.2.0"
+    "@turf/polygon-to-line" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/boolean-disjoint@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-disjoint/-/boolean-disjoint-7.2.0.tgz#84b07b10b6b0fa1e3a8276dd81dd30d697059a47"
+  integrity sha512-xdz+pYKkLMuqkNeJ6EF/3OdAiJdiHhcHCV0ykX33NIuALKIEpKik0+NdxxNsZsivOW6keKwr61SI+gcVtHYcnQ==
+  dependencies:
+    "@turf/boolean-point-in-polygon" "^7.2.0"
+    "@turf/helpers" "^7.2.0"
+    "@turf/line-intersect" "^7.2.0"
+    "@turf/meta" "^7.2.0"
+    "@turf/polygon-to-line" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/boolean-overlap@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-overlap/-/boolean-overlap-7.2.0.tgz#8319545b9bc50e7284b1c5d3ecad7b89500030cd"
+  integrity sha512-ieM5qIE4anO+gUHIOvEN7CjyowF+kQ6v20/oNYJCp63TVS6eGMkwgd+I4uMzBXfVW66nVHIXjODdUelU+Xyctw==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@turf/line-intersect" "^7.2.0"
+    "@turf/line-overlap" "^7.2.0"
+    "@turf/meta" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    geojson-equality-ts "^1.0.2"
+    tslib "^2.8.1"
+
+"@turf/boolean-point-in-polygon@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-point-in-polygon/-/boolean-point-in-polygon-7.2.0.tgz#0f9d18bb058b118340d79a0e5f346bd09a363a9a"
+  integrity sha512-lvEOjxeXIp+wPXgl9kJA97dqzMfNexjqHou+XHVcfxQgolctoJiRYmcVCWGpiZ9CBf/CJha1KmD1qQoRIsjLaA==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    point-in-polygon-hao "^1.1.0"
+    tslib "^2.8.1"
+
+"@turf/boolean-point-on-line@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-point-on-line/-/boolean-point-on-line-7.2.0.tgz#e0373a453cf504d1e7f3125705e7786ea8d48df6"
+  integrity sha512-H/bXX8+2VYeSyH8JWrOsu8OGmeA9KVZfM7M6U5/fSqGsRHXo9MyYJ94k39A9kcKSwI0aWiMXVD2UFmiWy8423Q==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/boolean-valid@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/boolean-valid/-/boolean-valid-7.2.0.tgz#608d1ac810b5009bc42d9b05408e4ce50489f58d"
+  integrity sha512-xb7gdHN8VV6ivPJh6rPpgxmAEGReiRxqY+QZoEZVGpW2dXcmU1BdY6FA6G/cwvggXAXxJBREoANtEDgp/0ySbA==
+  dependencies:
+    "@turf/bbox" "^7.2.0"
+    "@turf/boolean-crosses" "^7.2.0"
+    "@turf/boolean-disjoint" "^7.2.0"
+    "@turf/boolean-overlap" "^7.2.0"
+    "@turf/boolean-point-in-polygon" "^7.2.0"
+    "@turf/boolean-point-on-line" "^7.2.0"
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@turf/line-intersect" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    geojson-polygon-self-intersections "^1.2.1"
+    tslib "^2.8.1"
+
+"@turf/distance@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/distance/-/distance-7.2.0.tgz#bfc0bba9a1c5c8d601b2a8d02feffc9918bd48b5"
+  integrity sha512-HBjjXIgEcD/wJYjv7/6OZj5yoky2oUvTtVeIAqO3lL80XRvoYmVg6vkOIu6NswkerwLDDNT9kl7+BFLJoHbh6Q==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/geojson-rbush@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/geojson-rbush/-/geojson-rbush-7.2.0.tgz#b714af52b2302c0e9783d10e1a65236c8a92c269"
+  integrity sha512-ST8fLv+EwxVkDgsmhHggM0sPk2SfOHTZJkdgMXVFT7gB9o4lF8qk4y4lwvCCGIfFQAp2yv/PN5EaGMEKutk6xw==
+  dependencies:
+    "@turf/bbox" "^7.2.0"
+    "@turf/helpers" "^7.2.0"
+    "@turf/meta" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    rbush "^3.0.1"
+
+"@turf/helpers@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-7.2.0.tgz#5771308108c98d608eb8e7f16dcd0eb3fb8a3417"
+  integrity sha512-cXo7bKNZoa7aC7ydLmUR02oB3IgDe7MxiPuRz3cCtYQHn+BJ6h1tihmamYDWWUlPHgSNF0i3ATc4WmDECZafKw==
+  dependencies:
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/invariant@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/invariant/-/invariant-7.2.0.tgz#ba5b377ea20ee8c45af0a4c9b8bf03aa1c43bd5d"
+  integrity sha512-kV4u8e7Gkpq+kPbAKNC21CmyrXzlbBgFjO1PhrHPgEdNqXqDawoZ3i6ivE3ULJj2rSesCjduUaC/wyvH/sNr2Q==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/line-intersect@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/line-intersect/-/line-intersect-7.2.0.tgz#74f6a149429718ff2219329a5e3239f784f44489"
+  integrity sha512-GhCJVEkc8EmggNi85EuVLoXF5T5jNVxmhIetwppiVyJzMrwkYAkZSYB3IBFYGUUB9qiNFnTwungVSsBV/S8ZiA==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    sweepline-intersections "^1.5.0"
+    tslib "^2.8.1"
+
+"@turf/line-overlap@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/line-overlap/-/line-overlap-7.2.0.tgz#02a49011fd15333db1f41fe3ba4b2eec3fa2c342"
+  integrity sha512-NNn7/jg53+N10q2Kyt66bEDqN3101iW/1zA5FW7J6UbKApDFkByh+18YZq1of71kS6oUYplP86WkDp16LFpqqw==
+  dependencies:
+    "@turf/boolean-point-on-line" "^7.2.0"
+    "@turf/geojson-rbush" "^7.2.0"
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@turf/line-segment" "^7.2.0"
+    "@turf/meta" "^7.2.0"
+    "@turf/nearest-point-on-line" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    fast-deep-equal "^3.1.3"
+    tslib "^2.8.1"
+
+"@turf/line-segment@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/line-segment/-/line-segment-7.2.0.tgz#6ad3ec7ae80e49abe067ff1d95eb1a9002fd7a78"
+  integrity sha512-E162rmTF9XjVN4rINJCd15AdQGCBlNqeWN3V0YI1vOUpZFNT2ii4SqEMCcH2d+5EheHLL8BWVwZoOsvHZbvaWA==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@turf/meta" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/meta@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/meta/-/meta-7.2.0.tgz#6a6b1918890b4d9d2b5ff10b3ad47e2fd7470912"
+  integrity sha512-igzTdHsQc8TV1RhPuOLVo74Px/hyPrVgVOTgjWQZzt3J9BVseCdpfY/0cJBdlSRI4S/yTmmHl7gAqjhpYH5Yaw==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+
+"@turf/nearest-point-on-line@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/nearest-point-on-line/-/nearest-point-on-line-7.2.0.tgz#a32a887ff8970284050bdb3a2881a4ef15778cee"
+  integrity sha512-UOhAeoDPVewBQV+PWg1YTMQcYpJsIqfW5+EuZ5vJl60XwUa0+kqB/eVfSLNXmHENjKKIlEt9Oy9HIDF4VeWmXA==
+  dependencies:
+    "@turf/distance" "^7.2.0"
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@turf/meta" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/polygon-to-line@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/@turf/polygon-to-line/-/polygon-to-line-7.2.0.tgz#f1d209606cbe404e29246135695c3fcaa1269fd5"
+  integrity sha512-9jeTN3LiJ933I5sd4K0kwkcivOYXXm1emk0dHorwXeSFSHF+nlYesEW3Hd889wb9lZd7/SVLMUeX/h39mX+vCA==
+  dependencies:
+    "@turf/helpers" "^7.2.0"
+    "@turf/invariant" "^7.2.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
 "@tweenjs/tween.js@~23.1.3":
   version "23.1.3"
   resolved "https://registry.npmjs.org/@tweenjs/tween.js/-/tween.js-23.1.3.tgz"
@@ -770,7 +1131,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/geojson@*", "@types/geojson@^7946.0":
+"@types/geojson@*", "@types/geojson@^7946.0", "@types/geojson@^7946.0.10", "@types/geojson@^7946.0.14":
   version "7946.0.16"
   resolved "https://registry.npmjs.org/@types/geojson/-/geojson-7946.0.16.tgz"
   integrity sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==
@@ -1427,6 +1788,11 @@ fdir@^6.4.4:
   resolved "https://registry.npmjs.org/fdir/-/fdir-6.4.6.tgz"
   integrity sha512-hiFoqpyZcfNm1yc4u8oWCf9A2c4D3QjCrks3zmoVKVxpQRzmPNar1hUJcBG2RQHvEVGDN+Jm81ZheVLAQMK6+w==
 
+fflate@0.7.3:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.7.3.tgz#288b034ff0e9c380eaa2feff48c787b8371b7fa5"
+  integrity sha512-0Zz1jOzJWERhyhsimS54VTqOteCNwRtIlh8isdL0AXLo0g7xNTfTL7oWrkmCnPhZGocKIkWHBistBrrpoNH3aw==
+
 fflate@^0.6.9:
   version "0.6.10"
   resolved "https://registry.yarnpkg.com/fflate/-/fflate-0.6.10.tgz#5f40f9659205936a2d18abf88b2e7781662b6d43"
@@ -1475,6 +1841,13 @@ gensync@^1.0.0-beta.2:
   resolved "https://registry.npmjs.org/gensync/-/gensync-1.0.0-beta.2.tgz"
   integrity sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==
 
+geojson-equality-ts@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/geojson-equality-ts/-/geojson-equality-ts-1.0.2.tgz#2aed0b9aca1fedb17212fecbfc42f73020410480"
+  integrity sha512-h3Ryq+0mCSN/7yLs0eDgrZhvc9af23o/QuC4aTiuuzP/MRCtd6mf5rLsLRY44jX0RPUfM8c4GqERQmlUxPGPoQ==
+  dependencies:
+    "@types/geojson" "^7946.0.14"
+
 geojson-numeric@0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/geojson-numeric/-/geojson-numeric-0.2.1.tgz#2c8c032f792cca0747a6e02ffa86c00ee3d2df6c"
@@ -1482,6 +1855,13 @@ geojson-numeric@0.2.1:
   dependencies:
     concat-stream "2.0.0"
     optimist "~0.3.5"
+
+geojson-polygon-self-intersections@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/geojson-polygon-self-intersections/-/geojson-polygon-self-intersections-1.2.1.tgz#7018edabe58e9262f20821a7334953708c78bbb7"
+  integrity sha512-/QM1b5u2d172qQVO//9CGRa49jEmclKEsYOQmWP9ooEjj63tBM51m2805xsbxkzlEELQ2REgTf700gUhhlegxA==
+  dependencies:
+    rbush "^2.0.1"
 
 get-east-asian-width@^1.0.0:
   version "1.3.0"
@@ -2321,6 +2701,20 @@ oniguruma-to-es@^4.3.3:
     regex "^6.0.1"
     regex-recursion "^6.0.2"
 
+onml@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/onml/-/onml-1.2.0.tgz#35b90924660d3699f8dbe56154308e8fa1327b38"
+  integrity sha512-olqYAg18XoHAhm7tK9DdBCOVdts70DGmMgCNLOWyqZokht2utgGSKBB4JHi6pBZpmioAhcYlxK+91L3tsrz+GA==
+  dependencies:
+    sax "^1.2.1"
+
+onml@1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/onml/-/onml-1.3.0.tgz#db0ad8fa7468ebf33326fe9cc5d287bf797125b5"
+  integrity sha512-RhGUsC6Im2A5vAdIvxE3auRKTqrqUZQl/AYLn8+9lM3SO4da5bwhcI5TcM+hfQxNCSLLOVErsl9p0ZPjKKmz+g==
+  dependencies:
+    sax "^1.2.1"
+
 optimist@~0.3.5:
   version "0.3.7"
   resolved "https://registry.yarnpkg.com/optimist/-/optimist-0.3.7.tgz#c90941ad59e4273328923074d2cf2e7cbc6ec0d9"
@@ -2422,6 +2816,13 @@ picomatch@^4.0.2:
   resolved "https://registry.npmjs.org/picomatch/-/picomatch-4.0.2.tgz"
   integrity sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg==
 
+point-in-polygon-hao@^1.1.0:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/point-in-polygon-hao/-/point-in-polygon-hao-1.2.4.tgz#8662abdcc84bcca230cc3ecbb0b0ab1a306f1bd6"
+  integrity sha512-x2pcvXeqhRHlNRdhLs/tgFapAbSSe86wa/eqmj1G6pWftbEs5aVRJhRGM6FYSUERKu0PjekJzMq0gsI2XyiclQ==
+  dependencies:
+    robust-predicates "^3.0.2"
+
 postcss@^8.5.3:
   version "8.5.6"
   resolved "https://registry.npmjs.org/postcss/-/postcss-8.5.6.tgz"
@@ -2464,10 +2865,34 @@ protocol-buffers-schema@^3.3.1:
   resolved "https://registry.yarnpkg.com/protocol-buffers-schema/-/protocol-buffers-schema-3.6.0.tgz#77bc75a48b2ff142c1ad5b5b90c94cd0fa2efd03"
   integrity sha512-TdDRD+/QNdrCGCE7v8340QyuXd4kIWIgapsE2+n/SaGiSSbomYl4TjHlvIoCWRpE7wFt02EpB35VVA2ImcBVqw==
 
+quickselect@^1.0.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/quickselect/-/quickselect-1.1.1.tgz#852e412ce418f237ad5b660d70cffac647ae94c2"
+  integrity sha512-qN0Gqdw4c4KGPsBOQafj6yj/PA6c/L63f6CaZ/DCF/xF4Esu3jVmKLUDYxghFx8Kb/O7y9tI7x2RjTSXwdK1iQ==
+
+quickselect@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/quickselect/-/quickselect-2.0.0.tgz#f19680a486a5eefb581303e023e98faaf25dd018"
+  integrity sha512-RKJ22hX8mHe3Y6wH/N3wCM6BWtjaxIyyUIkpHOvfFnxdI4yD4tBXEBKSbriGujF6jnSVkJrffuo6vxACiSSxIw==
+
 radix3@^1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/radix3/-/radix3-1.1.2.tgz"
   integrity sha512-b484I/7b8rDEdSDKckSSBA8knMpcdsXudlE/LNL639wFoHKwLbEkQFZHWEYwDC0wa0FKUcCY+GAF73Z7wxNVFA==
+
+rbush@^2.0.1:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/rbush/-/rbush-2.0.2.tgz#bb6005c2731b7ba1d5a9a035772927d16a614605"
+  integrity sha512-XBOuALcTm+O/H8G90b6pzu6nX6v2zCKiFG4BJho8a+bY6AER6t8uQUZdi5bomQc0AprCWhEGa7ncAbbRap0bRA==
+  dependencies:
+    quickselect "^1.0.1"
+
+rbush@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/rbush/-/rbush-3.0.1.tgz#5fafa8a79b3b9afdfe5008403a720cc1de882ecf"
+  integrity sha512-XRaVO0YecOpEuIvbhbpTrZgoiI6xBlz6hnlr6EHhd+0x9ase6EmeN+hdwwUaJvLcsFFQ8iWVF1GAK1yB0BWi0w==
+  dependencies:
+    quickselect "^2.0.0"
 
 react-dom@^19.1.0:
   version "19.1.0"
@@ -2667,6 +3092,11 @@ retext@^9.0.0:
     retext-stringify "^4.0.0"
     unified "^11.0.0"
 
+robust-predicates@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/robust-predicates/-/robust-predicates-3.0.2.tgz#d5b28528c4824d20fc48df1928d41d9efa1ad771"
+  integrity sha512-IXgzBWvWQwE6PrDI05OvmXUIruQTcoMDzRsOd5CDvHCVLcLHMTSYvOK5Cm46kWqlV3yAbuSpBZdJ5oP5OUoStg==
+
 rollup@^4.34.9:
   version "4.44.0"
   resolved "https://registry.npmjs.org/rollup/-/rollup-4.44.0.tgz"
@@ -2700,6 +3130,18 @@ safe-buffer@~5.2.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.2.1.tgz#1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6"
   integrity sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==
+
+sax@^1.2.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/sax/-/sax-1.4.1.tgz#44cc8988377f126304d3b3fc1010c733b929ef0f"
+  integrity sha512-+aWOz7yVScEGoKNd4PA10LZ8sk0A/z5+nXQG5giUO5rprX9jgYsTdov9qCchZiPIZezbZH+jRut8nPodFAX4Jg==
+
+saxes@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/saxes/-/saxes-5.0.1.tgz#eebab953fa3b7608dbe94e5dadb15c888fa6696d"
+  integrity sha512-5LBh1Tls8c9xgGjw3QrMwETmTMVk0oFgvrFSvWx62llR2hcEInrKNZ2GZCCuuy2lvWrdl5jhbpeqc5hRYKFOcw==
+  dependencies:
+    xmlchars "^2.2.0"
 
 scheduler@^0.26.0:
   version "0.26.0"
@@ -2838,6 +3280,13 @@ strip-ansi@^7.1.0:
   dependencies:
     ansi-regex "^6.0.1"
 
+sweepline-intersections@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/sweepline-intersections/-/sweepline-intersections-1.5.0.tgz#85ab3629a291875926fae0acd508496430d8a647"
+  integrity sha512-AoVmx72QHpKtItPu72TzFL+kcYjd67BPLDoR0LarIk+xyaRg+pDTMFXndIEvZf9xEKnJv6JdhgRMnocoG0D3AQ==
+  dependencies:
+    tinyqueue "^2.0.0"
+
 three-stdlib@^2.36.0:
   version "2.36.0"
   resolved "https://registry.yarnpkg.com/three-stdlib/-/three-stdlib-2.36.0.tgz#1d806b8db9156a6c87ed10f61f56f8a3ab634b42"
@@ -2886,6 +3335,11 @@ tinyglobby@^0.2.12, tinyglobby@^0.2.13:
     fdir "^6.4.4"
     picomatch "^4.0.2"
 
+tinyqueue@^2.0.0:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/tinyqueue/-/tinyqueue-2.0.3.tgz#64d8492ebf39e7801d7bd34062e29b45b2035f08"
+  integrity sha512-ppJZNDuKGgxzkHihX8v9v9G5f+18gzaTfrukGrq6ueg0lmH4nqVnA2IPG0AEH3jKEk2GRJCUhDoqpoiw3PHLBA==
+
 tr46@~0.0.3:
   version "0.0.3"
   resolved "https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz"
@@ -2906,7 +3360,7 @@ tsconfck@^3.1.5:
   resolved "https://registry.npmjs.org/tsconfck/-/tsconfck-3.1.6.tgz"
   integrity sha512-ks6Vjr/jEw0P1gmOVwutM3B7fWxoWBL2KRDb1JfqGVawBmO5UsvmWOQFGHBPl5yxYz4eERr19E6L7NMv+Fej4w==
 
-tslib@^2.4.0, tslib@^2.8.0:
+tslib@^2.4.0, tslib@^2.8.0, tslib@^2.8.1:
   version "2.8.1"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz"
   integrity sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==
@@ -3160,6 +3614,11 @@ wrap-ansi@^9.0.0:
     ansi-styles "^6.2.1"
     string-width "^7.0.0"
     strip-ansi "^7.1.0"
+
+xmlchars@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/xmlchars/-/xmlchars-2.2.0.tgz#060fe1bcb7f9c76fe2a17db86a9bc3ab894210cb"
+  integrity sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==
 
 xxhash-wasm@^1.1.0:
   version "1.1.0"

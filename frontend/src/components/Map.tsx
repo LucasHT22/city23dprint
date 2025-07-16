@@ -25,9 +25,9 @@ type MapProps = {
 export default function Map({ onSTLGenerated }: MapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const [geojson, setGeojson] = useState<any>(null);
+  const [status, setStatus] = useState('');
   const [generating, setGenerating] = useState(false);
   const [loadingBuildings, setLoadingBuildings] = useState(false);
-  const [status, setStatus] = useState('');
 
   useEffect(() => {
     const map = L.map('map').setView([-23.5505, -46.6333], 13);
@@ -42,10 +42,8 @@ export default function Map({ onSTLGenerated }: MapProps) {
 
     const drawControl = new L.Control.Draw({
       draw: {
+        rectangle: { shapeOptions: { color: '#3388ff', weight: 4 } },
         polygon: false,
-        rectangle: {
-          shapeOptions: { color: '#3388ff', weight: 5 },
-        },
         marker: false,
         circle: false,
         polyline: false,
@@ -58,24 +56,25 @@ export default function Map({ onSTLGenerated }: MapProps) {
 
     map.on(L.Draw.Event.CREATED, (event) => {
       drawnItems.clearLayers();
+
       const layer = event.propagatedFrom ?? event.layer;
       drawnItems.addLayer(layer);
-      const geo = layer.toGeoJSON();
 
+      const geo = layer.toGeoJSON();
       const coords = geo.geometry.coordinates[0];
+
       const allEqual = coords.every(
-        ([lng, lat]: [number, number]) =>
-          lng === coords[0][0] && lat === coords[0][1]
+        ([lng, lat]: [number, number]) => lng === coords[0][0] && lat === coords[0][1]
       );
       if (allEqual) {
-        alert('Invalid area: select a real rectangle');
+        alert('Invalid area: select a real rectangle.');
         return;
       }
 
       const bounds = layer.getBounds();
       const area = bounds.getNorthEast().distanceTo(bounds.getSouthWest());
       if (area > 5000) {
-        alert('Please select a smaller area');
+        alert('Please select a smaller area.');
         return;
       }
 
@@ -93,10 +92,8 @@ export default function Map({ onSTLGenerated }: MapProps) {
     const lats = coords.map((c) => c[1]);
     const lngs = coords.map((c) => c[0]);
 
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
+    const [minLat, maxLat] = [Math.min(...lats), Math.max(...lats)];
+    const [minLng, maxLng] = [Math.min(...lngs), Math.max(...lngs)];
 
     const query = `
       [out:json][timeout:30];
@@ -129,7 +126,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
     return geojson;
   }
 
-  const handleGenerateSTL = async () => {
+  async function handleGenerateSTL() {
     if (!geojson) return;
 
     setGenerating(true);
@@ -144,15 +141,12 @@ export default function Map({ onSTLGenerated }: MapProps) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'model/stl',
+          Accept: 'model/stl',
         },
         body: JSON.stringify(buildingsGeoJSON),
       });
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || 'Failed to generate STL');
-      }
+      if (!response.ok) throw new Error(await response.text() || 'Failed to generate STL');
 
       const blob = await response.blob();
       if (blob.size === 0) throw new Error('Generated STL is empty');
@@ -170,26 +164,29 @@ export default function Map({ onSTLGenerated }: MapProps) {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      setStatus(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setStatus(`Error: ${message}`);
+      alert(`Error: ${message}`);
     } finally {
       setGenerating(false);
       setLoadingBuildings(false);
     }
-  };
+  }
 
   return (
     <div>
-      <div id="map" style={{ height: '600px' }}></div>
+      <div id="map" style={{ height: 600 }} />
 
       {status && (
-        <div style={{
-          marginTop: '10px',
-          padding: '10px',
-          backgroundColor: '#f0f8ff',
-          border: '1px solid #ccc',
-          borderRadius: '4px'
-        }}>
+        <div
+          style={{
+            marginTop: 10,
+            padding: 10,
+            backgroundColor: '#f0f8ff',
+            border: '1px solid #ccc',
+            borderRadius: 4,
+          }}
+        >
           {status}
         </div>
       )}
@@ -199,18 +196,20 @@ export default function Map({ onSTLGenerated }: MapProps) {
           onClick={handleGenerateSTL}
           disabled={generating}
           style={{
-            marginTop: '10px',
+            marginTop: 10,
             padding: '10px 20px',
             background: generating ? '#999' : '#28a745',
             color: 'white',
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: 8,
             cursor: generating ? 'not-allowed' : 'pointer',
           }}
         >
-          {loadingBuildings ? 'Loading buildings...' :
-            generating ? 'Generating STL...' :
-            'Generate STL'}
+          {loadingBuildings
+            ? 'Loading buildings...'
+            : generating
+            ? 'Generating STL...'
+            : 'Generate STL'}
         </button>
       )}
     </div>
