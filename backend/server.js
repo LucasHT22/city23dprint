@@ -1,71 +1,50 @@
 const express = require('express');
 const cors = require('cors');
 const { spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const { error } = require('console');
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-app.post('/generate-model', (req, res) => {
+app.post('/generate-model', async (req, res) => {
     const geojson = req.body;
-    
-    if (!geojson || !geojson.features) return res.status(400).json({ error: 'Invalid or empty GeoJSON' });
-    
-    console.log("Received buildings:", geojson.features.length);
-    
-    const tempFile = path.join(__dirname, 'temp_buildings.json');
-    fs.writeFileSync(tempFile, JSON.stringify(geojson));
+  if (!geojson || !geojson.features) {
+    return res.status(400).json({ error: 'Invalid or empty GeoJSON' });
+  }
 
-    const python = spawn('python', ['generate.py']);
-    let stlBuffer = Buffer.alloc(0);
-    let errorOutput = '';
+  const python = spawn('python', ['generate.py']);
 
-    python.stdout.on('data', (data) => {
-        stlBuffer = Buffer.concat([stlBuffer, data]);
-    });
+  let errorLog = '';
+  let chunks = [];
 
-    python.stderr.on('data', (err) => {
-        errorOutput += err.toString();
-        console.error('Python stderr:', err.toString())
-    });
+  python.stderr.on('data', (chunk) => {
+    errorLog += chunk.toString();
+  });
 
-    python.on('close', (code) => {
-        try {
-            fs.unlinkSync(tempFile);
-        } catch (e) {
-            console.warn('Could not delete temp file', e.message);
-        }
-        if (code !== 0) {
-            console.error('Error: ', code)
-            console.error('Python error: ', errorOutput);
-            return res.status(500).send({
-                error: 'Error generating STL',
-                details: errorOutput,
-            });
-        } 
+  python.stdout.on('data', (chunk) => {
+    chunks.push(chunk);
+  });
 
-        if (stlBuffer.length === 0) {
-            return res.status(500).json({
-                error: 'Empty STL file'
-            });
-        }
+  python.on('close', (code) => {
+    if (code !== 0) {
+      return res.status(500).json({ error: 'Python process failed', details: errorLog });
+    }
 
-        res.setHeader('Content-Type', 'model/stl');
-        res.setHeader('Content-Disposition', 'attachment; filename=buildings.stl');
-        res.setHeader('Cache-Control', 'no-store');
-        res.send(stlBuffer);
+    const buffer = Buffer.concat(chunks);
+    if (!buffer.length) {
+      return res.status(500).json({ error: 'Empty STL output' });
+    }
 
-        python.on('error', (err) => {
-            console.error('Failed to spawn process: ', err);
-            res.status(500).json({
-                error: 'Failed to start Python process',
-                details: err.message
-            });
-        });
-    });
+    res.setHeader('Content-Type', 'model/stl');
+    res.setHeader('Content-Disposition', 'attachment; filename=buildings.stl');
+    res.send(buffer);
+  });
+
+  python.stdin.write(JSON.stringify(geojson));
+  python.stdin.end();
 });
 
-app.listen(3001, () => console.log('Backend running http://localhost:3001'));
+app.listen(3001, () => {
+    console.log('Server listening at http://localhost:3001');
+    console.log('Press Ctrl+C to quit.');
+});
