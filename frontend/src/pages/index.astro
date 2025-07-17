@@ -1,5 +1,10 @@
 ---
-import MapWithViewer from '../components/MapWithViewer.tsx';
+import Map from "../components/Map";
+import { useState } from "react";
+
+const handleSTL = (blob: Blob) => {
+	console.log('STL OK', blob);
+}
 ---
 
 <html lang="en">
@@ -26,6 +31,6 @@ import MapWithViewer from '../components/MapWithViewer.tsx';
 			<h1>City 2 3D</h1>
 			<h2>Select an area:</h2>
 		</div>
-			<MapWithViewer client:only="react" />
+			<Map client:only="react" onSTLGenerated={(blob) => console.log('STL BLOB: ', blob)} />
 	</body>
 </html>
