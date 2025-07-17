@@ -7,5 +7,4 @@ This project allows you to select regions on an interactive map and generate cor
 - Select any area on the map via Leaflet
 - Query buildings from OpenStreetMap (via Overpass API)
 - Generate STL models from selected GeoJSON in real time
-- STL is streamed and previewed in-browser, no file storage
-- Serverless architecture with API endpoints triggering Python processing
+- Serverless architecture
