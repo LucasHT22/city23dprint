@@ -12,7 +12,7 @@ const { extrudeLinear } = extrusionsPkg;
 const { union } = booleansPkg;
 const { serialize } = stlSerializerPkg;
 
-export const post: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
     const geojson = await request.json();
 
