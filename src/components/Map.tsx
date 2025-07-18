@@ -122,6 +122,8 @@ export default function Map({ onSTLGenerated }: MapProps) {
     const geojson = osmtogeojson(osmData);
     if (!geojson.features?.length) throw new Error('Invalid OSM to GeoJSON conversion');
 
+    console.log('OSM Data received:', osmData);
+    console.log('Converted GeoJSON:', geojson);
     setStatus(`${geojson.features.length} buildings found.`);
     return geojson;
   }
@@ -137,6 +139,9 @@ export default function Map({ onSTLGenerated }: MapProps) {
       setLoadingBuildings(false);
       setStatus('Generating 3D model...');
 
+      console.log('Sending buildingsGeoJSON:', buildingsGeoJSON);
+      console.log('GeoJSON features count:', buildingsGeoJSON.features?.length);
+      console.log('First feature:', buildingsGeoJSON.features?.[0]);
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
@@ -145,7 +150,11 @@ export default function Map({ onSTLGenerated }: MapProps) {
         },
         body: JSON.stringify(buildingsGeoJSON),
       });
-
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        throw new Error(errorText || 'Failed to generate STL');
+      }
       if (!response.ok) throw new Error(await response.text() || 'Failed to generate STL');
 
       const blob = await response.blob();

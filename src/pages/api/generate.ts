@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import type { APIRoute } from 'astro';
 import { polygon as turfPolygon } from '@turf/helpers';
 import booleanValid from '@turf/boolean-valid';
@@ -14,15 +16,50 @@ const { serialize } = stlSerializerPkg;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const geojson = await request.json();
+    const contentType = request.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return new Response('Content-Type must be application/json', { status: 400 });
+    }
+    console.log('Received Content-Type: ', contentType);
+    const rawBody = await request.text();
+    console.log('Raw body length:', rawBody.length);
+    console.log('Raw body preview:', rawBody.substring(0, 200) + '...');
+    if (!rawBody || rawBody.trim() == '') {
+      return new Response('Request body is empty', { status: 400 });
+    }
 
-    if (!geojson.features || geojson.features.length === 0) {
+    let geojson;
+    try {
+      geojson = JSON.parse(rawBody);
+      console.log('Parsed GeoJSON successfully');
+      console.log('Features count:', geojson.features?.length);
+    } catch (parseError) {
+      console.error('JSON Parse Error: ', parseError);
+      return new Response('Invalid JSON in request body', { status: 400 });
+    }
+
+    if (!geojson || typeof geojson !== 'object') {
+      return new Response('Invalid GeoJSON: not an object', { status: 400 });
+    }
+
+    if (!geojson.features || !Array.isArray(geojson.features)) {
+      return new Response('Invalid GeoJSON: features must be an array', { status: 400 });
+    }
+
+    if (geojson.features.length === 0) {
       return new Response('Invalid GeoJSON: no features', { status: 400 });
     }
 
+    console.log('Starting to process features...');
     const meshes = [];
+    let processedCount = 0;
+    let errorCount = 0;
 
     for (const feature of geojson.features) {
+      processedCount++;
+      if (processedCount % 100 === 0) {
+        console.log(`Processing feature ${processedCount}/${geojson.features.length}`);
+      }
       const geom = feature.geometry;
       if (!geom) continue;
 
@@ -32,7 +69,13 @@ export const POST: APIRoute = async ({ request }) => {
       else continue;
 
       for (const coords of polygons) {
-        if (!booleanValid(turfPolygon(coords))) continue;
+        try {
+          if (!booleanValid(turfPolygon(coords))) continue;
+        } catch (turfError) {
+          console.warn('Invalid polygon coordinates:', turfError);
+          errorCount++;
+          continue;
+        }
 
         const height = getHeight(feature.properties);
 
@@ -53,18 +96,33 @@ export const POST: APIRoute = async ({ request }) => {
           meshes.push(mesh);
         } catch (e) {
           console.warn('Failed to extrude polygon:', e);
+          errorCount++;
           continue;
         }
       }
     }
 
+    console.log(`Processing complete. Processed: ${processedCount}, Errors: ${errorCount}, Valid meshes: ${meshes.length}`);
+
     if (meshes.length === 0) {
       return new Response('No valid buildings to generate STL', { status: 400 });
     }
 
-    const combined = union(...meshes);
+    let combined;
+    try {
+      combined = union(...meshes);
+    } catch (unionError) {
+      console.error('Failed to union meshes:', unionError);
+      return new Response('Failed to combine 3D models', { status: 500 });
+    }
 
-    const stlData = serialize(combined, { binary: false });
+    let stlData;
+    try {
+      stlData = serialize(combined, { binary: false });
+    } catch (serializeError) {
+      console.error('Failed to serialize STL:', serializeError);
+      return new Response('Failed to generate STL file', { status: 500 });
+    }
 
     return new Response(stlData, {
       status: 200,
