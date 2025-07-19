@@ -1,6 +1,5 @@
 ---
 import Map from "../components/Map";
-import { useState } from "react";
 
 const handleSTL = (blob: Blob) => {
 	console.log('STL OK', blob);
@@ -28,8 +27,9 @@ const handleSTL = (blob: Blob) => {
 			}
 		</style>
 		<div class="main">
-			<h1>City 2 3D</h1>
+			<h1>City 2 3D Print</h1>
 			<h2>Select an area:</h2>
+			<p><i>It takes a while! Wait:)</i></p>
 		</div>
 			<Map client:only="react" onSTLGenerated={(blob) => console.log('STL BLOB: ', blob)} />
 	</body>

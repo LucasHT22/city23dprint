@@ -161,7 +161,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
       if (blob.size === 0) throw new Error('Generated STL is empty');
 
       setStatus(`STL ready: ${(blob.size / 1024).toFixed(1)} KB`);
-      onSTLGenerated(blob);
+      // onSTLGenerated(blob);
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
