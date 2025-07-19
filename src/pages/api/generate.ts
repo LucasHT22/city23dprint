@@ -19,7 +19,6 @@ function debugMesh(mesh: any, index: number = 0): void {
   console.log('Mesh type:', typeof mesh);
   console.log('Mesh constructor:', mesh?.constructor?.name);
   console.log('Mesh keys:', Object.keys(mesh || {}));
-
   if (mesh?.polygons) {
     console.log('Polygons count:', mesh.polygons.length);
     console.log('First polygon structure:', {
@@ -28,8 +27,7 @@ function debugMesh(mesh: any, index: number = 0): void {
       hasPlane: !!mesh.polygons[0]?.plane,
       firstVertex: mesh.polygons[0]?.vertices?.[0],
       allVertices: mesh.polygons[0]?.vertices
-    });
-
+    }); 
     if (mesh.polygons[0]?.vertices?.[0]) {
       const vertex = mesh.polygons[0].vertices[0];
       console.log('Vertex dimension check:', {
@@ -41,9 +39,9 @@ function debugMesh(mesh: any, index: number = 0): void {
     }
   }
   if (mesh?.transforms) {
-    console.log('Transforms: ', mesh.transforms);
+    console.log('Transforms:', mesh.transforms);
   }
-
+  
   console.log('END DEBUG\n');
 }
 
@@ -68,7 +66,6 @@ function meshToSTL(mesh: any, meshIndex: number = 0): string {
   let stl = `solid building_${meshIndex}\n`;
   let validTriangles = 0;
   let invalidTriangles = 0;
-
   for (let polyIndex = 0; polyIndex < mesh.polygons.length; polyIndex++) {
     const polygon = mesh.polygons[polyIndex];
     if (!polygon?.vertices || !Array.isArray(polygon.vertices)) {
@@ -79,13 +76,12 @@ function meshToSTL(mesh: any, meshIndex: number = 0): string {
       invalidTriangles++;
       continue;
     }
-
     let normal = [0, 0, 1];
     try {
       if (polygon.vertices.length >= 3) {
         const v1 = polygon.vertices[0];
         const v2 = polygon.vertices[1];
-        const v3 = polygon.vertices[2];
+        const v3 = polygon.vertices[2];   
         if (v1.length >= 3 && v2.length >= 3 && v3.length >= 3) {
           const edge1 = [v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]];
           const edge2 = [v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]];
@@ -105,21 +101,20 @@ function meshToSTL(mesh: any, meshIndex: number = 0): string {
     } catch (normalError) {
       console.warn(`Failed to calculate normal for polygon ${polyIndex}:`, normalError);
     }
-
     for (let i = 1; i < polygon.vertices.length - 1; i++) {
       const v1 = polygon.vertices[0];
       const v2 = polygon.vertices[i];
       const v3 = polygon.vertices[i + 1];
+      
       if (!Array.isArray(v1) || v1.length < 3 || !Array.isArray(v2) || v2.length < 3 || !Array.isArray(v3) || v3.length < 3) {
         invalidTriangles++;
         continue;
       }
-
       const area = calculateTriangleArea(v1, v2, v3);
       if (area < 1e-10) {
         invalidTriangles++;
         continue;
-      }
+      }   
       stl += `  facet normal ${normal[0].toFixed(6)} ${normal[1].toFixed(6)} ${normal[2].toFixed(6)}\n`;
       stl += '    outer loop\n';
       stl += `      vertex ${v1[0].toFixed(6)} ${v1[1].toFixed(6)} ${v1[2].toFixed(6)}\n`;
@@ -152,7 +147,6 @@ function calculateTriangleArea(v1: number[], v2: number[], v3: number[]): number
     edge1[2] * edge2[0] - edge1[0] * edge2[2],
     edge1[0] * edge2[1] - edge1[1] * edge2[0]
   ];
-
   const magnitude = Math.sqrt(cross[0] * cross[0] + cross[1] * cross[1] + cross[2] * cross[2]);
   return magnitude / 2;
 }
@@ -171,7 +165,6 @@ function isValidMesh(mesh: any): boolean {
       console.warn('Mesh validation failed: empty polygons array');
       return false;
     }
-
     let validPolygons = 0;
     for (const polygon of mesh.polygons) {
       if (polygon?.vertices && Array.isArray(polygon.vertices) && polygon.vertices.length >= 3) {
@@ -197,7 +190,7 @@ function isValidMesh(mesh: any): boolean {
 
 async function generateSTLWithFallbacks(meshes: any[]): Promise<string> {
   console.log(`\nSTARTING STL GENERATION WITH ${meshes.length} MESHES`);
-  if (meshes.length) {
+  if (meshes.length > 1) {
     try {
       console.log('Strategy 1: Attempting union and JSCAD serialization...');
       const combined = unionMeshes(meshes);
@@ -211,7 +204,6 @@ async function generateSTLWithFallbacks(meshes: any[]): Promise<string> {
       console.log('Strategy 1: FAILED -', error.message);
     }
   }
-
   try {
     console.log('Strategy 2: Attempting JSCAD serialization on individual meshes...');
     const stlParts: string[] = [];
@@ -240,7 +232,6 @@ async function generateSTLWithFallbacks(meshes: any[]): Promise<string> {
   } catch (error) {
     console.log('Strategy 2: FAILED -', error.message);
   }
-
   try {
     console.log('Strategy 3: Attempting manual STL generation...');
     const stlParts: string[] = [];
@@ -253,8 +244,7 @@ async function generateSTLWithFallbacks(meshes: any[]): Promise<string> {
         stlParts.push(stl);
         successCount++;
       }
-    }
-
+    } 
     if (successCount > 0) {
       console.log(`Strategy 3: SUCCESS - ${successCount}/${meshes.length} meshes converted manually`);
       return stlParts.join('\n');
@@ -264,28 +254,25 @@ async function generateSTLWithFallbacks(meshes: any[]): Promise<string> {
   } catch (error) {
     console.log('Strategy 3: FAILED -', error.message);
   }
-
   throw new Error('All STL generation strategies failed');
 }
 
 function unionMeshes(meshes: any[]): any {
   if (meshes.length === 0) return null;
   if (meshes.length === 1) return meshes[0];
-
   try {
     let result = meshes[0];
-
     for (let i = 1; i < meshes.length; i++) {
       try {
         result = union(result, meshes[i]);
         if (i % 10 === 0) {
-          console.log(`Unique progress: ${i}/${meshes.length}`);
+          console.log(`Union progress: ${i}/${meshes.length}`);
         }
       } catch (unionError) {
         console.warn(`Failed to union mesh ${i}:`, unionError.message);
       }
     }
-    return result;
+    return result;   
   } catch (error) {
     console.error('Union operation failed completely:', error);
     return null;
@@ -340,7 +327,8 @@ export const POST: APIRoute = async ({ request }) => {
       processedCount++;
       if (processedCount % 50 === 0) {
         console.log(`Processing feature ${processedCount}/${geojson.features.length}`);
-      }      
+      }
+      
       const geom = feature.geometry;
       if (!geom) {
         errorCount++;
@@ -485,7 +473,8 @@ function getHeight(props: any): number {
 
 function removeDuplicatePoints(points: [number, number][]): [number, number][] {
   const result: [number, number][] = [];
-  const tolerance = 1e-10; 
+  const tolerance = 1e-10;
+  
   for (let i = 0; i < points.length; i++) {
     const current = points[i];
     const next = points[(i + 1) % points.length];
