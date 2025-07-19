@@ -8,3 +8,14 @@ This project allows you to select regions on an interactive map and generate cor
 - Query buildings from OpenStreetMap (via Overpass API)
 - Generate STL models from selected GeoJSON in real time
 - Serverless architecture
+
+## Run
+```
+yarn build
+yarn add @turf/helpers @turf/boolean-valid
+yarn add @jscad/modeling
+yarn dev
+```
+
+---
+Check my website devlucas.page :)
