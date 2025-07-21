@@ -34,7 +34,7 @@ interface ScaleAnalysis {
     factor: number;
     description: string;
     finalSizeDescription: string;
-  }
+  };
 }
 
 interface ComplexityAnalysis {
@@ -48,7 +48,7 @@ function analyzeAreaAndComplexity(geojson: any): ScaleAnalysis {
   console.log('Analyzing area and complexity for automatic scaling...');
 
   let minLat = Infinity, maxLat = -Infinity;
-  let minLon = Infinity, maxLon = - Infinity;
+  let minLon = Infinity, maxLon = -Infinity;
   let totalVertices = 0;
   let buildingCount = 0;
   let maxVerticesPerBuilding = 0;
@@ -378,16 +378,10 @@ function isValidMesh(mesh: any): boolean {
     let validPolygons = 0;
     for (const polygon of mesh.polygons) {
       if (polygon?.vertices && Array.isArray(polygon.vertices) && polygon.vertices.length >= 3) {
-        let valid3D = true;
-        for (const vertex of polygon.vertices) {
-          if (!Array.isArray(vertex) || vertex.length < 3) {
-            valid3D = false;
-            break;
-          }
-        }
-        if (valid3D) {
-          validPolygons++;
-        }
+        const valid3D = polygon.vertices.every(vertex => 
+          Array.isArray(vertex) && vertex.length >= 3
+        );
+        if (valid3D) validPolygons++;
       }
     }
     console.log(`Mesh validation: ${validPolygons}/${mesh.polygons.length} valid polygons`);
@@ -601,9 +595,10 @@ export const POST: APIRoute = async ({ request }) => {
         holes.forEach(hole => {
           const cleanHole = removeDuplicatePoints(hole);
           if (cleanHole.length >= 3) {
+            const localHole = convertToLocalCoordinates(cleanHole, origin, scaleFactor);
             const holeStartIndex = points.length;
-            points.push(...cleanHole);
-            paths.push(cleanHole.map((_, i) => i + holeStartIndex));
+            points.push(...localHole);
+            paths.push(localHole.map((_, i) => i + holeStartIndex));
           }
         });
 
