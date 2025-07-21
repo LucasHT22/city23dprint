@@ -301,31 +301,19 @@ function calculateTriangleArea(v1: number[], v2: number[], v3: number[]): number
 
 function isValidMesh(mesh: any): boolean {
   try {
-    if (!mesh || typeof mesh !== 'object') {
-      console.warn('Mesh validation failed: not an object');
-      return false;
-    }
-    if (!mesh.polygons || !Array.isArray(mesh.polygons)) {
-      console.warn('Mesh validation failed: no polygons array');
-      return false;
-    }
-    if (mesh.polygons.length === 0) {
-      console.warn('Mesh validation failed: empty polygons array');
-      return false;
-    }
-    let validPolygons = 0;
-    for (const polygon of mesh.polygons) {
+    if (!mesh || typeof mesh !== 'object') return false;
+    if (!mesh.polygons || !Array.isArray(mesh.polygons)) return false;
+    if (mesh.polygons.length === 0) return false;
+    let validCount = 0;
+    const checkLimit = Math.min(5, mesh.polygons.length);
+    for (let i = 0; i < checkLimit; i++) {
+      const polygon = mesh.polygons[i];
       if (polygon?.vertices && Array.isArray(polygon.vertices) && polygon.vertices.length >= 3) {
-        const valid3D = polygon.vertices.every(vertex => 
-          Array.isArray(vertex) && vertex.length >= 3
-        );
-        if (valid3D) validPolygons++;
+        validCount++;
       }
     }
-    console.log(`Mesh validation: ${validPolygons}/${mesh.polygons.length} valid polygons`);
-    return validPolygons > 0;
+    return validCount > 0;
   } catch (e) {
-    console.warn('Mesh validation error:', e);
     return false;
   }
 }
@@ -335,12 +323,19 @@ async function generateSTLManually(meshes: any[]): Promise<string> {
   
   const stlParts: string[] = [];
   let successCount = 0;
+  const maxMeshes = 200;
+  const processLimit = Math.min(maxMeshes, meshes.length);
   
-  for (let i = 0; i < meshes.length; i++) {
-    const stl = meshToSTL(meshes[i], i);
-    if (stl && stl.length > 100) {
-      stlParts.push(stl);
-      successCount++;
+  for (let i = 0; i < processLimit; i++) {
+    try {
+      const stl = meshToSTL(meshes[i], i);
+      if (stl && stl.length > 100) {
+        stlParts.push(stl);
+        successCount++;
+      }
+    } catch (meshError) {
+      console.warn(`Failed to convert mesh ${i} to STL:`, meshError.message);
+      continue;
     }
   } 
   
@@ -389,6 +384,12 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response('Invalid GeoJSON: no features', { status: 400 });
     }
 
+    const maxFeatures = 500;
+    if (geojson.features.length > maxFeatures) {
+      console.log(`Limiting features from ${geojson.features.length} to ${maxFeatures}`);
+      geojson.features = geojson.features.slice(0, maxFeatures);
+    }
+
     const scaleAnalysis = analyzeAreaAndComplexity(geojson);
     const scaleFactor = scaleAnalysis.recommendedScale.factor;
     const origin: [number, number] = [
@@ -405,8 +406,13 @@ export const POST: APIRoute = async ({ request }) => {
     let processedCount = 0;
     let errorCount = 0;
     let validMeshCount = 0;
+    let maxProcessingTime = 25000;
 
     for (const feature of geojson.features) {
+      if (Date.now() - startTime > maxProcessingTime) {
+        console.log(`Timeout protection: stopping at ${processedCount} features`);
+        break;
+      }
       processedCount++;
       if (processedCount % 50 === 0) {
         console.log(`Processing feature ${processedCount}/${geojson.features.length}`);
@@ -428,7 +434,8 @@ export const POST: APIRoute = async ({ request }) => {
 
       for (const coords of polygons) {
         try {
-          if (!booleanValid(turfPolygon(coords))) {
+          const turfValid = coords.length >= 1 && coords[0].length >= 4;
+          if (!turfValid) {
             errorCount++;
             continue;
           }
@@ -478,11 +485,9 @@ export const POST: APIRoute = async ({ request }) => {
             meshes.push(mesh);
             validMeshCount++;
           } else {
-            console.warn(`Invalid mesh generated for feature ${processedCount}, skipping`);
             errorCount++;
           }
         } catch (extrudeError) {
-          console.warn(`Failed to extrude polygon for feature ${processedCount}:`, extrudeError.message);
           errorCount++;
           continue;
         }
@@ -520,9 +525,22 @@ export const POST: APIRoute = async ({ request }) => {
     console.error(`Total time: ${endTime - startTime}ms`);
     console.error('Error:', error);
     
+    if (error instanceof Error) {
+      console.error('Error stack:', error.stack);
+    }
+
     return new Response(
-      `Internal error: ${error instanceof Error ? error.message : String(error)}`,
-      { status: 500 }
+      JSON.stringify({ 
+        error: 'Internal server error',
+        message: error instanceof Error ? error.message : String(error),
+        processingTime: endTime - startTime
+      }),
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
   }
 };
