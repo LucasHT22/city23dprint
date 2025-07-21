@@ -3,16 +3,11 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { polygon as turfPolygon } from '@turf/helpers';
 import booleanValid from '@turf/boolean-valid';
+import pkg from '@jscad/modeling';
+const { primitives, extrusions } = pkg;
 
-import primitivesPkg from '@jscad/modeling/src/primitives';
-import extrusionsPkg from '@jscad/modeling/src/operations/extrusions';
-import booleansPkg from '@jscad/modeling/src/operations/booleans';
-import stlSerializerPkg from '@jscad/stl-serializer';
-
-const { polygon } = primitivesPkg;
-const { extrudeLinear } = extrusionsPkg;
-const { union } = booleansPkg;
-const { serialize } = stlSerializerPkg;
+const { polygon } = primitives;
+const { extrudeLinear } = extrusions;
 
 interface ScaleAnalysis {
   geographicBounds: {
@@ -35,13 +30,6 @@ interface ScaleAnalysis {
     description: string;
     finalSizeDescription: string;
   };
-}
-
-interface ComplexityAnalysis {
-  totalTriangles: number;
-  totalVertices: number;
-  maxVerticesPerPolygon: number;
-  estimatedSizeMB: number;
 }
 
 function analyzeAreaAndComplexity(geojson: any): ScaleAnalysis {
@@ -198,63 +186,6 @@ function convertToLocalCoordinates(
   });
 }
 
-function analyzeComplexity(meshes: any[]): ComplexityAnalysis {
-  let totalTriangles = 0;
-  let totalVertices = 0;
-  let maxVerticesPerPolygon = 0;
-
-  for (const mesh of meshes) {
-    if (mesh?.polygons) {
-      for (const polygon of mesh.polygons) {
-        if (polygon?.vertices) {
-          const vertexCount = polygon.vertices.length;
-          totalVertices += vertexCount;
-          maxVerticesPerPolygon = Math.max(maxVerticesPerPolygon, vertexCount);
-          totalTriangles += Math.max(0, vertexCount - 2);
-        }
-      }
-    }
-  }
-
-  return {
-    totalTriangles,
-    totalVertices,
-    maxVerticesPerPolygon,
-    estimatedSizeMB: (totalTriangles * 50) / (1024 * 1024)
-  };
-}
-
-function debugMesh(mesh: any, index: number = 0): void {
-  console.log(`MESH ${index} DEBUG`);
-  console.log('Mesh type:', typeof mesh);
-  console.log('Mesh constructor:', mesh?.constructor?.name);
-  console.log('Mesh keys:', Object.keys(mesh || {}));
-  if (mesh?.polygons) {
-    console.log('Polygons count:', mesh.polygons.length);
-    console.log('First polygon structure:', {
-      hasVertices: !!mesh.polygons[0]?.vertices,
-      verticesCount: mesh.polygons[0]?.vertices?.length || 0,
-      hasPlane: !!mesh.polygons[0]?.plane,
-      firstVertex: mesh.polygons[0]?.vertices?.[0],
-      allVertices: mesh.polygons[0]?.vertices
-    }); 
-    if (mesh.polygons[0]?.vertices?.[0]) {
-      const vertex = mesh.polygons[0].vertices[0];
-      console.log('Vertex dimension check:', {
-        isArray: Array.isArray(vertex),
-        length: vertex?.length,
-        is3D: Array.isArray(vertex) && vertex.length >= 3,
-        values: vertex
-      });
-    }
-  }
-  if (mesh?.transforms) {
-    console.log('Transforms:', mesh.transforms);
-  }
-  
-  console.log('END DEBUG\n');
-}
-
 // if you are reading this, know that it's 01 am on a Saturday and Lucas trying everything possible to make this work, that's the result of many talks with humans, duck debug and ai 
 
 function meshToSTL(mesh: any, meshIndex: number = 0): string {
@@ -276,6 +207,7 @@ function meshToSTL(mesh: any, meshIndex: number = 0): string {
   let stl = `solid building_${meshIndex}\n`;
   let validTriangles = 0;
   let invalidTriangles = 0;
+  
   for (let polyIndex = 0; polyIndex < mesh.polygons.length; polyIndex++) {
     const polygon = mesh.polygons[polyIndex];
     if (!polygon?.vertices || !Array.isArray(polygon.vertices)) {
@@ -286,12 +218,14 @@ function meshToSTL(mesh: any, meshIndex: number = 0): string {
       invalidTriangles++;
       continue;
     }
+    
     let normal = [0, 0, 1];
     try {
       if (polygon.vertices.length >= 3) {
         const v1 = polygon.vertices[0];
         const v2 = polygon.vertices[1];
         const v3 = polygon.vertices[2];   
+        
         if (v1.length >= 3 && v2.length >= 3 && v3.length >= 3) {
           const edge1 = [v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]];
           const edge2 = [v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]];
@@ -311,6 +245,7 @@ function meshToSTL(mesh: any, meshIndex: number = 0): string {
     } catch (normalError) {
       console.warn(`Failed to calculate normal for polygon ${polyIndex}:`, normalError);
     }
+    
     for (let i = 1; i < polygon.vertices.length - 1; i++) {
       const v1 = polygon.vertices[0];
       const v2 = polygon.vertices[i];
@@ -320,11 +255,13 @@ function meshToSTL(mesh: any, meshIndex: number = 0): string {
         invalidTriangles++;
         continue;
       }
+      
       const area = calculateTriangleArea(v1, v2, v3);
       if (area < 1e-10) {
         invalidTriangles++;
         continue;
       }   
+      
       stl += `  facet normal ${normal[0].toFixed(6)} ${normal[1].toFixed(6)} ${normal[2].toFixed(6)}\n`;
       stl += '    outer loop\n';
       stl += `      vertex ${v1[0].toFixed(6)} ${v1[1].toFixed(6)} ${v1[2].toFixed(6)}\n`;
@@ -336,6 +273,7 @@ function meshToSTL(mesh: any, meshIndex: number = 0): string {
       validTriangles++;
     }
   }
+  
   stl += `endsolid building_${meshIndex}\n`;
   
   console.log(`Mesh ${meshIndex} STL conversion: ${validTriangles} valid triangles, ${invalidTriangles} invalid triangles`);
@@ -392,94 +330,25 @@ function isValidMesh(mesh: any): boolean {
   }
 }
 
-async function generateSTLWithFallbacks(meshes: any[]): Promise<string> {
-  console.log(`\nSTARTING STL GENERATION WITH ${meshes.length} MESHES`);
-  if (meshes.length > 1) {
-    try {
-      console.log('Strategy 1: Attempting union and JSCAD serialization...');
-      const combined = unionMeshes(meshes);
-      if (combined) {
-        debugMesh(combined, -1);
-        const stl = serialize(combined, { binary: false });
-        console.log('Strategy 1: SUCCESS - JSCAD serialization worked');
-        return stl;
-      }
-    } catch (error) {
-      console.log('Strategy 1: FAILED -', error.message);
+async function generateSTLManually(meshes: any[]): Promise<string> {
+  console.log(`\nSTARTING MANUAL STL GENERATION WITH ${meshes.length} MESHES`);
+  
+  const stlParts: string[] = [];
+  let successCount = 0;
+  
+  for (let i = 0; i < meshes.length; i++) {
+    const stl = meshToSTL(meshes[i], i);
+    if (stl && stl.length > 100) {
+      stlParts.push(stl);
+      successCount++;
     }
-  }
-  try {
-    console.log('Strategy 2: Attempting JSCAD serialization on individual meshes...');
-    const stlParts: string[] = [];
-    let successCount = 0;
-    
-    for (let i = 0; i < meshes.length; i++) {
-      try {
-        debugMesh(meshes[i], i);
-        const stl = serialize(meshes[i], { binary: false });
-        if (stl && stl.length > 100) {
-          stlParts.push(stl);
-          successCount++;
-        }
-      } catch (meshError) {
-        console.warn(`JSCAD serialization failed for mesh ${i}:`, meshError.message);
-      }
-    }
-    
-    if (successCount > 0) {
-      console.log(`Strategy 2: PARTIAL SUCCESS - ${successCount}/${meshes.length} meshes serialized`);
-      return stlParts.join('\n');
-    } else {
-      throw new Error('No meshes could be serialized with JSCAD');
-    }
-    
-  } catch (error) {
-    console.log('Strategy 2: FAILED -', error.message);
-  }
-  try {
-    console.log('Strategy 3: Attempting manual STL generation...');
-    const stlParts: string[] = [];
-    let successCount = 0;
-    
-    for (let i = 0; i < meshes.length; i++) {
-      debugMesh(meshes[i], i);
-      const stl = meshToSTL(meshes[i], i);
-      if (stl && stl.length > 100) {
-        stlParts.push(stl);
-        successCount++;
-      }
-    } 
-    if (successCount > 0) {
-      console.log(`Strategy 3: SUCCESS - ${successCount}/${meshes.length} meshes converted manually`);
-      return stlParts.join('\n');
-    } else {
-      throw new Error('Manual STL generation failed for all meshes');
-    }
-  } catch (error) {
-    console.log('Strategy 3: FAILED -', error.message);
-  }
-  throw new Error('All STL generation strategies failed');
-}
-
-function unionMeshes(meshes: any[]): any {
-  if (meshes.length === 0) return null;
-  if (meshes.length === 1) return meshes[0];
-  try {
-    let result = meshes[0];
-    for (let i = 1; i < meshes.length; i++) {
-      try {
-        result = union(result, meshes[i]);
-        if (i % 10 === 0) {
-          console.log(`Union progress: ${i}/${meshes.length}`);
-        }
-      } catch (unionError) {
-        console.warn(`Failed to union mesh ${i}:`, unionError.message);
-      }
-    }
-    return result;   
-  } catch (error) {
-    console.error('Union operation failed completely:', error);
-    return null;
+  } 
+  
+  if (successCount > 0) {
+    console.log(`Manual STL generation: SUCCESS - ${successCount}/${meshes.length} meshes converted`);
+    return stlParts.join('\n');
+  } else {
+    throw new Error('Manual STL generation failed for all meshes');
   }
 }
 
@@ -495,7 +364,6 @@ export const POST: APIRoute = async ({ request }) => {
     const rawBody = await request.text();
     console.log('Received Content-Type:', contentType);
     console.log('Raw body length:', rawBody.length);
-    console.log('Raw body preview:', rawBody.substring(0, 200) + '...');
     
     if (!rawBody || rawBody.trim() === '') {
       return new Response('Request body is empty', { status: 400 });
@@ -528,9 +396,9 @@ export const POST: APIRoute = async ({ request }) => {
       (scaleAnalysis.geographicBounds.minLat + scaleAnalysis.geographicBounds.maxLat) / 2
     ];
 
-    console.log(`\n USING AUTOMATIC SCALE: 1:${scaleFactor}`);
-    console.log(` Final miniature size: ${scaleAnalysis.recommendedScale.finalSizeDescription}`);
-    console.log(` Origin point: [${origin[0].toFixed(6)}, ${origin[1].toFixed(6)}]`);
+    console.log(`\nUSING AUTOMATIC SCALE: 1:${scaleFactor}`);
+    console.log(`Final miniature size: ${scaleAnalysis.recommendedScale.finalSizeDescription}`);
+    console.log(`Origin point: [${origin[0].toFixed(6)}, ${origin[1].toFixed(6)}]`);
 
     console.log('\nSTARTING MESH GENERATION');
     const meshes = [];
@@ -605,13 +473,6 @@ export const POST: APIRoute = async ({ request }) => {
         try {
           const shape = polygon({ points, paths });
           const mesh = extrudeLinear({ height }, shape);
-          
-          if (validMeshCount < 3) {
-            console.log(`\nMESH ${validMeshCount + 1} GENERATION DEBUG`);
-            console.log('Input:', { height: height.toFixed(4), pointsCount: points.length, pathsCount: paths.length, samplePoint: points[0]?.map(p => p.toFixed(4)) });
-            console.log('Shape created:', !!shape);
-            debugMesh(mesh, validMeshCount + 1);
-          }
 
           if (mesh && isValidMesh(mesh)) {
             meshes.push(mesh);
@@ -635,11 +496,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response('No valid buildings to generate STL', { status: 400 });
     }
 
-    const complexity = analyzeComplexity(meshes);
-    console.log(`Final complexity: ${complexity.totalTriangles} triangles, ${complexity.totalVertices} vertices`);
-    console.log(`Estimated size: ${complexity.estimatedSizeMB.toFixed(2)} MB`);
-
-    const stlData = await generateSTLWithFallbacks(meshes);
+    const stlData = await generateSTLManually(meshes);
     
     const endTime = Date.now();
     console.log(`\nGENERATION COMPLETE`);
