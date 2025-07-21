@@ -14,6 +14,216 @@ const { extrudeLinear } = extrusionsPkg;
 const { union } = booleansPkg;
 const { serialize } = stlSerializerPkg;
 
+interface ScaleAnalysis {
+  geographicBounds: {
+    minLat: number;
+    maxLat: number;
+    minLon: number;
+    maxLon: number;
+    widthKm: number;
+    heightKm: number;
+    areaKm2: number;
+  };
+  complexity: {
+    buildingCount: number;
+    totalVertices: number;
+    averageVerticesPerBuilding: number;
+    maxVerticesPerBuilding: number;
+  };
+  recommendedScale: {
+    factor: number;
+    description: string;
+    finalSizeDescription: string;
+  }
+}
+
+interface ComplexityAnalysis {
+  totalTriangles: number;
+  totalVertices: number;
+  maxVerticesPerPolygon: number;
+  estimatedSizeMB: number;
+}
+
+function analyzeAreaAndComplexity(geojson: any): ScaleAnalysis {
+  console.log('Analyzing area and complexity for automatic scaling...');
+
+  let minLat = Infinity, maxLat = -Infinity;
+  let minLon = Infinity, maxLon = - Infinity;
+  let totalVertices = 0;
+  let buildingCount = 0;
+  let maxVerticesPerBuilding = 0;
+
+  for (const feature of geojson.features) {
+    const geom = feature.geometry;
+    if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) continue;
+
+    buildingCount++;
+    let buildingVertices = 0;
+
+    const polygons = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+
+    for (const coords of polygons) {
+      for (const ring of coords) {
+        buildingVertices += ring.length;
+        for (const [lon, lat] of ring) {
+          minLat = Math.min(minLat, lat);
+          maxLat = Math.max(maxLat, lat);
+          minLon = Math.min(minLon, lon);
+          maxLon = Math.max(maxLon, lon);
+        }
+      }
+    }
+
+    totalVertices += buildingVertices;
+    maxVerticesPerBuilding = Math.max(maxVerticesPerBuilding, buildingVertices);
+  }
+
+  const widthKm = haversineDistance(
+    { lat: (minLat + maxLat) / 2, lon: minLon },
+    { lat: (minLat + maxLat) / 2, lon: maxLon }
+  );
+
+  const heightKm = haversineDistance(
+    { lat: minLat, lon: (minLon + maxLon) / 2 },
+    { lat: maxLat, lon: (minLon + maxLon) / 2 }
+  );
+
+  const areaKm2 = widthKm * heightKm;
+  const recommendedScale = calculateOptimalScale({
+    widthKm, heightKm, areaKm2, buildingCount, totalVertices, maxVerticesPerBuilding
+  });
+
+  const analysis: ScaleAnalysis = {
+    geographicBounds: { minLat, maxLat, minLon, maxLon, widthKm, heightKm, areaKm2 },
+    complexity: {
+      buildingCount,
+      totalVertices,
+      averageVerticesPerBuilding: Math.round(totalVertices / buildingCount),
+      maxVerticesPerBuilding
+    },
+    recommendedScale
+  };
+
+  console.log('AREA ANALYSIS:', {
+    dimensions: `${widthKm.toFixed(2)}km × ${heightKm.toFixed(2)}km`,
+    area: `${areaKm2.toFixed(2)} km²`,
+    buildings: buildingCount,
+    scale: `1:${recommendedScale.factor}`,
+    finalSize: recommendedScale.finalSizeDescription
+  });
+
+  return analysis;
+}
+
+function calculateOptimalScale(params: {
+  widthKm: number;
+  heightKm: number;
+  areaKm2: number;
+  buildingCount: number;
+  totalVertices: number;
+  maxVerticesPerBuilding: number;
+}): { factor: number; description: string; finalSizeDescription: string } {
+  
+  const { widthKm, heightKm, areaKm2, buildingCount, totalVertices } = params;
+
+  let baseFactor: number;
+  let description: string;
+
+  if (areaKm2 < 0.1) {
+    baseFactor = 1000;
+    description = 'Square';
+  } else if (areaKm2 < 0.5) {
+    baseFactor = 2000;
+    description = 'Small Neighborhood';
+  } else if (areaKm2 < 2.0) {
+    baseFactor = 5000;
+    description = 'Medium Neighborhood';
+  } else if (areaKm2 < 10.0) {
+    baseFactor = 10000;
+    description = 'District';
+  } else {
+    baseFactor = 20000;
+    description = 'Metropolitan Area';
+  }
+
+  let complexityAdjustment = 1.0;
+  const density = buildingCount / areaKm2;
+  const avgComplexity = totalVertices / buildingCount;
+
+  if (density > 1000) complexityAdjustment *= 1.5;
+  else if (density > 500) complexityAdjustment *= 1.3;
+  else if (density < 50) complexityAdjustment *= 0.8;
+
+  if (avgComplexity > 50) complexityAdjustment *= 1.2;
+  else if (avgComplexity < 10) complexityAdjustment *= 0.9;
+
+  const adjustedFactor = Math.round(baseFactor * complexityAdjustment);
+  const finalWidthCm = (widthKm * 1000) / adjustedFactor * 100;
+  const finalHeightCm = (heightKm * 1000) / adjustedFactor * 100;
+
+  const finalSizeDescription = `${finalWidthCm.toFixed(1)}cm × ${finalHeightCm.toFixed(1)}cm (1:${adjustedFactor})`;
+
+  return {
+    factor: adjustedFactor,
+    description,
+    finalSizeDescription
+  };
+}
+
+function haversineDistance(point1: { lat: number; lon: number }, point2: { lat: number; lon: number }): number {
+  const R = 6371;
+  const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+  const dLon = (point2.lon - point1.lon) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) * Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function convertToLocalCoordinates(
+  coordinates: [number, number][], 
+  origin: [number, number],
+  scaleFactor: number
+): [number, number][] {
+  const earthRadius = 6378137;
+  const toRadians = Math.PI / 180;
+  const refLatRad = origin[1] * toRadians;
+
+  return coordinates.map(coord => {
+    const deltaLat = (coord[1] - origin[1]) * toRadians;
+    const deltaLon = (coord[0] - origin[0]) * toRadians;
+    const x = (deltaLon * earthRadius * Math.cos(refLatRad)) / scaleFactor;
+    const y = (deltaLat * earthRadius) / scaleFactor;
+
+    return [x, y];
+  });
+}
+
+function analyzeComplexity(meshes: any[]): ComplexityAnalysis {
+  let totalTriangles = 0;
+  let totalVertices = 0;
+  let maxVerticesPerPolygon = 0;
+
+  for (const mesh of meshes) {
+    if (mesh?.polygons) {
+      for (const polygon of mesh.polygons) {
+        if (polygon?.vertices) {
+          const vertexCount = polygon.vertices.length;
+          totalVertices += vertexCount;
+          maxVerticesPerPolygon = Math.max(maxVerticesPerPolygon, vertexCount);
+          totalTriangles += Math.max(0, vertexCount - 2);
+        }
+      }
+    }
+  }
+
+  return {
+    totalTriangles,
+    totalVertices,
+    maxVerticesPerPolygon,
+    estimatedSizeMB: (totalTriangles * 50) / (1024 * 1024)
+  };
+}
+
 function debugMesh(mesh: any, index: number = 0): void {
   console.log(`MESH ${index} DEBUG`);
   console.log('Mesh type:', typeof mesh);
@@ -317,6 +527,17 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response('Invalid GeoJSON: no features', { status: 400 });
     }
 
+    const scaleAnalysis = analyzeAreaAndComplexity(geojson);
+    const scaleFactor = scaleAnalysis.recommendedScale.factor;
+    const origin: [number, number] = [
+      (scaleAnalysis.geographicBounds.minLon + scaleAnalysis.geographicBounds.maxLon) / 2,
+      (scaleAnalysis.geographicBounds.minLat + scaleAnalysis.geographicBounds.maxLat) / 2
+    ];
+
+    console.log(`\n USING AUTOMATIC SCALE: 1:${scaleFactor}`);
+    console.log(` Final miniature size: ${scaleAnalysis.recommendedScale.finalSizeDescription}`);
+    console.log(` Origin point: [${origin[0].toFixed(6)}, ${origin[1].toFixed(6)}]`);
+
     console.log('\nSTARTING MESH GENERATION');
     const meshes = [];
     let processedCount = 0;
@@ -373,8 +594,9 @@ export const POST: APIRoute = async ({ request }) => {
           continue;
         }
 
-        const points = [...cleanOuter];
-        const paths = [cleanOuter.map((_, i) => i)];
+        const localOuter = convertToLocalCoordinates(cleanOuter, origin, scaleFactor);
+        const points = [...localOuter];
+        const paths = [localOuter.map((_, i) => i)];
 
         holes.forEach(hole => {
           const cleanHole = removeDuplicatePoints(hole);
@@ -391,7 +613,7 @@ export const POST: APIRoute = async ({ request }) => {
           
           if (validMeshCount < 3) {
             console.log(`\nMESH ${validMeshCount + 1} GENERATION DEBUG`);
-            console.log('Input:', { height, pointsCount: points.length, pathsCount: paths.length });
+            console.log('Input:', { height: height.toFixed(4), pointsCount: points.length, pathsCount: paths.length, samplePoint: points[0]?.map(p => p.toFixed(4)) });
             console.log('Shape created:', !!shape);
             debugMesh(mesh, validMeshCount + 1);
           }
@@ -418,6 +640,10 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response('No valid buildings to generate STL', { status: 400 });
     }
 
+    const complexity = analyzeComplexity(meshes);
+    console.log(`Final complexity: ${complexity.totalTriangles} triangles, ${complexity.totalVertices} vertices`);
+    console.log(`Estimated size: ${complexity.estimatedSizeMB.toFixed(2)} MB`);
+
     const stlData = await generateSTLWithFallbacks(meshes);
     
     const endTime = Date.now();
@@ -430,7 +656,9 @@ export const POST: APIRoute = async ({ request }) => {
       status: 200,
       headers: {
         'Content-Type': 'model/stl',
-        'Content-Disposition': 'attachment; filename="buildings.stl"',
+        'Content-Disposition': `attachment; filename="miniature_1-${scaleFactor}.stl"`,
+        'X-Miniature-Scale': `1:${scaleFactor}`,
+        'X-Miniature-Size': scaleAnalysis.recommendedScale.finalSizeDescription,
       },
     });
 
