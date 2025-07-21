@@ -93,7 +93,7 @@ function analyzeAreaAndComplexity(geojson: any): ScaleAnalysis {
   };
 
   console.log('AREA ANALYSIS:', {
-    dimensions: `${widthKm.toFixed(2)}km × ${heightKm.toFixed(2)}km`,
+    dimensions: `${widthKm.toFixed(2)}km x ${heightKm.toFixed(2)}km`,
     area: `${areaKm2.toFixed(2)} km²`,
     buildings: buildingCount,
     scale: `1:${recommendedScale.factor}`,
@@ -149,7 +149,7 @@ function calculateOptimalScale(params: {
   const finalWidthCm = (widthKm * 1000) / adjustedFactor * 100;
   const finalHeightCm = (heightKm * 1000) / adjustedFactor * 100;
 
-  const finalSizeDescription = `${finalWidthCm.toFixed(1)}cm × ${finalHeightCm.toFixed(1)}cm (1:${adjustedFactor})`;
+  const finalSizeDescription = `${finalWidthCm.toFixed(1)}cm x ${finalHeightCm.toFixed(1)}cm (1:${adjustedFactor})`;
 
   return {
     factor: adjustedFactor,
