@@ -25,12 +25,27 @@ const handleSTL = (blob: Blob) => {
 				justify-content: center;
 				text-align: center;
 			}
+			.trouble {
+				display: block;
+				margin: 50px;
+			}
 		</style>
 		<div class="main">
 			<h1>City 2 3D Print</h1>
 			<h2>Select an area:</h2>
 			<p><i>It takes a while! Wait:)</i></p>
 		</div>
-			<Map client:only="react" onSTLGenerated={(blob) => console.log('STL BLOB: ', blob)} />
+		<Map client:only="react" onSTLGenerated={(blob) => console.log('STL BLOB: ', blob)} />
+		<div class="trouble">
+			<h2>Troubleshooting</h2>
+			<p>Possible errors</p>
+			<h3>Expected result: </h3>
+			<img src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/85f3e5a1c1370a760e0fed83109ca0e33eff3ed0_image.png" style="display: flex; width: 80%">
+			<h3>FUNCTION_INVOCATION_FAILED</h3>
+			<p>If you get this error, run locally, you can do it with yarn build and yarn dev</p>
+			<h3>STL with bizarrely large Z axis</h3>
+			<p>This is a bug regarding the coordinates, reduce the Z height manually, application side solution under test.</p>
+		</div>
+		
 	</body>
 </html>
