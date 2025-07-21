@@ -438,7 +438,7 @@ export const POST: APIRoute = async ({ request }) => {
           continue;
         }
 
-        const height = getHeight(feature.properties);
+        const height = getHeight(feature.properties) / scaleFactor;
         if (height <= 0) {
           errorCount++;
           continue;
