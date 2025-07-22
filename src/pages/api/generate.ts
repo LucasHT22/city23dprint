@@ -186,7 +186,76 @@ function convertToLocalCoordinates(
   });
 }
 
-// if you are reading this, know that it's 01 am on a Saturday and Lucas trying everything possible to make this work, that's the result of many talks with humans, duck debug and ai 
+function generateOptimizedBase(geojson: any, origin: [number, number], scaleFactor: number): any {
+  console.log('Generating optimized base for buildings...');
+  
+  const baseThickness = 2 / scaleFactor;
+  const bufferDistance = 5 / scaleFactor;
+  
+  const allPoints: [number, number][] = [];
+  
+  for (const feature of geojson.features) {
+    const geom = feature.geometry;
+    if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) continue;
+    
+    const polygons = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+    
+    for (const coords of polygons) {
+      const outer = coords[0];
+      if (!outer || outer.length < 3) continue;
+      
+      const cleanOuter = removeDuplicatePoints(outer);
+      const localPoints = convertToLocalCoordinates(cleanOuter, origin, scaleFactor);
+      allPoints.push(...localPoints);
+    }
+  }
+  
+  if (allPoints.length === 0) return null;
+  
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  
+  for (const [x, y] of allPoints) {
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+  }
+  
+  minX -= bufferDistance;
+  maxX += bufferDistance;
+  minY -= bufferDistance;
+  maxY += bufferDistance;
+  
+  const basePoints: [number, number][] = [
+    [minX, minY],
+    [maxX, minY],
+    [maxX, maxY],
+    [minX, maxY]
+  ];
+  
+  try {
+    const baseShape = polygon({ 
+      points: basePoints, 
+      paths: [[0, 1, 2, 3]] 
+    });
+    
+    const baseMesh = extrudeLinear({ height: baseThickness }, baseShape);
+    
+    console.log(`Base generated: ${(maxX-minX).toFixed(1)}x${(maxY-minY).toFixed(1)} units, thickness: ${baseThickness.toFixed(3)}`);
+    return baseMesh;
+    
+  } catch (error) {
+    console.warn('Failed to generate base:', error);
+    return null;
+  }
+}
+
+function shouldGenerateBase(buildingCount: number, areaKm2: number): boolean {
+  if (buildingCount > 50 && areaKm2 < 5) return true;
+  if (buildingCount > 100 && areaKm2 < 10) return true;
+  return false;
+}
 
 function meshToSTL(mesh: any, meshIndex: number = 0): string {
   console.log(`Converting mesh ${meshIndex} to STL manually...`);
@@ -403,10 +472,28 @@ export const POST: APIRoute = async ({ request }) => {
 
     console.log('\nSTARTING MESH GENERATION');
     const meshes = [];
+    
+    const needsBase = shouldGenerateBase(
+      scaleAnalysis.complexity.buildingCount, 
+      scaleAnalysis.geographicBounds.areaKm2
+    );
+    
+    if (needsBase) {
+      console.log('Generating base for miniature...');
+      const baseMesh = generateOptimizedBase(geojson, origin, scaleFactor);
+      
+      if (baseMesh && isValidMesh(baseMesh)) {
+        meshes.push(baseMesh);
+        console.log('Base mesh added successfully');
+      } else {
+        console.log('Base generation failed, continuing without base');
+      }
+    }
+    
     let processedCount = 0;
     let errorCount = 0;
-    let validMeshCount = 0;
-    let maxProcessingTime = 25000;
+    let validMeshCount = meshes.length;
+    let maxProcessingTime = needsBase ? 30000 : 25000;
 
     for (const feature of geojson.features) {
       if (Date.now() - startTime > maxProcessingTime) {
@@ -494,7 +581,8 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    console.log(`\nMESH GENERATION COMPLETE`);
+    console.log(`\nMESH GENERATION COMPLETE ${needsBase ? '(WITH BASE)' : '(NO BASE)'}`);
+    console.log(`Total meshes: ${meshes.length} (${needsBase ? 'including base' : 'buildings only'})`);
     console.log(`Processed: ${processedCount}, Errors: ${errorCount}, Valid meshes: ${validMeshCount}`);
 
     if (meshes.length === 0) {
@@ -513,9 +601,10 @@ export const POST: APIRoute = async ({ request }) => {
       status: 200,
       headers: {
         'Content-Type': 'model/stl',
-        'Content-Disposition': `attachment; filename="miniature_1-${scaleFactor}.stl"`,
+        'Content-Disposition': `attachment; filename="miniature_1-${scaleFactor}${needsBase ? '_with_base' : ''}.stl"`,
         'X-Miniature-Scale': `1:${scaleFactor}`,
         'X-Miniature-Size': scaleAnalysis.recommendedScale.finalSizeDescription,
+        'X-Has-Base': needsBase.toString(),
       },
     });
 
