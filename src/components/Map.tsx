@@ -42,8 +42,14 @@ export default function Map({ onSTLGenerated }: MapProps) {
 
     const drawControl = new L.Control.Draw({
       draw: {
-        rectangle: { shapeOptions: { color: '#3388ff', weight: 4 } },
-        polygon: false,
+        polygon: {
+          shapeOptions: { color: '#3388ff', weight: 4 },
+          allowIntersection: false,
+          showArea: true,
+          guidelineDistance: 10,
+          maxPoints: 4,
+        },
+        rectangle: false,
         marker: false,
         circle: false,
         polyline: false,
@@ -56,18 +62,14 @@ export default function Map({ onSTLGenerated }: MapProps) {
 
     map.on(L.Draw.Event.CREATED, (event) => {
       drawnItems.clearLayers();
-
-      const layer = event.propagatedFrom ?? event.layer;
+      const layer = event.layer;
       drawnItems.addLayer(layer);
 
       const geo = layer.toGeoJSON();
       const coords = geo.geometry.coordinates[0];
 
-      const allEqual = coords.every(
-        ([lng, lat]: [number, number]) => lng === coords[0][0] && lat === coords[0][1]
-      );
-      if (allEqual) {
-        alert('Invalid area: select a real rectangle.');
+      if (coords.length !== 5 || coords.slice(0, 4).length !== 4) {
+        alert('You must select exactly 4 points.');
         return;
       }
 
@@ -115,15 +117,12 @@ export default function Map({ onSTLGenerated }: MapProps) {
     });
 
     if (!response.ok) throw new Error(`Overpass error: ${response.statusText}`);
-
     const osmData = await response.json();
     if (!osmData.elements?.length) throw new Error('No buildings found.');
 
     const geojson = osmtogeojson(osmData);
-    if (!geojson.features?.length) throw new Error('Invalid OSM to GeoJSON conversion');
+    if (!geojson.features?.length) throw new Error('Invalid OSM to GeoJSON conversion.');
 
-    console.log('OSM Data received:', osmData);
-    console.log('Converted GeoJSON:', geojson);
     setStatus(`${geojson.features.length} buildings found.`);
     return geojson;
   }
@@ -139,9 +138,6 @@ export default function Map({ onSTLGenerated }: MapProps) {
       setLoadingBuildings(false);
       setStatus('Generating 3D model...');
 
-      console.log('Sending buildingsGeoJSON:', buildingsGeoJSON);
-      console.log('GeoJSON features count:', buildingsGeoJSON.features?.length);
-      console.log('First feature:', buildingsGeoJSON.features?.[0]);
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
@@ -150,18 +146,13 @@ export default function Map({ onSTLGenerated }: MapProps) {
         },
         body: JSON.stringify(buildingsGeoJSON),
       });
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error:', errorText);
-        throw new Error(errorText || 'Failed to generate STL');
-      }
+
       if (!response.ok) throw new Error(await response.text() || 'Failed to generate STL');
 
       const blob = await response.blob();
       if (blob.size === 0) throw new Error('Generated STL is empty');
 
       setStatus(`STL ready: ${(blob.size / 1024).toFixed(1)} KB`);
-      // onSTLGenerated(blob);
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
