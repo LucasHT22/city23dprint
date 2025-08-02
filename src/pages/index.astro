@@ -17,8 +17,13 @@ const handleSTL = (blob: Blob) => {
 		<style>
 			* {
 				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-				background-color: #9dceff;
-				color: #104273;
+				background-color: #FFE066;
+			}
+			h1 {
+				color: #D72638;
+			}
+			h2 {
+				color: #F46036;
 			}
 			.main {
 				display: block;
@@ -27,9 +32,8 @@ const handleSTL = (blob: Blob) => {
 			}
 		</style>
 		<div class="main">
-			<h1>City 2 3D Print</h1>
+			<h1><b><i>City 2 3D Print</i></b></h1>
 			<h2>Select an area:</h2>
-			<p><i>It takes a while! Wait:)</i></p>
 		</div>
 		<Map client:only="react" onSTLGenerated={(blob) => console.log('STL BLOB: ', blob)} />
 	</body>

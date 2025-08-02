@@ -43,7 +43,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
     const drawControl = new L.Control.Draw({
       draw: {
         polygon: {
-          shapeOptions: { color: '#3388ff', weight: 4 },
+          shapeOptions: { color: '#F46036', weight: 4 },
           allowIntersection: false,
           showArea: true,
           guidelineDistance: 10,
@@ -198,7 +198,7 @@ export default function Map({ onSTLGenerated }: MapProps) {
           style={{
             marginTop: 10,
             padding: '10px 20px',
-            background: generating ? '#999' : '#28a745',
+            background: generating ? '#999' : '#F46036',
             color: 'white',
             border: 'none',
             borderRadius: 8,
