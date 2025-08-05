@@ -21,6 +21,8 @@ interface ScaleAnalysis {
   };
   complexity: {
     buildingCount: number;
+    roadCount: number;
+    parkCount: number;
     totalVertices: number;
     averageVerticesPerBuilding: number;
     maxVerticesPerBuilding: number;
@@ -39,20 +41,31 @@ function analyzeAreaAndComplexity(geojson: any): ScaleAnalysis {
   let minLon = Infinity, maxLon = -Infinity;
   let totalVertices = 0;
   let buildingCount = 0;
+  let roadCount = 0;
+  let parkCount = 0;
   let maxVerticesPerBuilding = 0;
 
   for (const feature of geojson.features) {
     const geom = feature.geometry;
     if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) continue;
 
-    buildingCount++;
-    let buildingVertices = 0;
+    const featureType = identifyFeatureType(feature);
+
+    if (featureType === 'building') {
+      buildingCount++;
+    } else if (featureType === 'road') {
+      roadCount++;
+    } else if (featureType === 'park') {
+      parkCount++;
+    }
+
+    let featureVertices = 0;
 
     const polygons = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
 
     for (const coords of polygons) {
       for (const ring of coords) {
-        buildingVertices += ring.length;
+        featureVertices += ring.length;
         for (const [lon, lat] of ring) {
           minLat = Math.min(minLat, lat);
           maxLat = Math.max(maxLat, lat);
@@ -62,8 +75,8 @@ function analyzeAreaAndComplexity(geojson: any): ScaleAnalysis {
       }
     }
 
-    totalVertices += buildingVertices;
-    maxVerticesPerBuilding = Math.max(maxVerticesPerBuilding, buildingVertices);
+    totalVertices += featureVertices;
+    maxVerticesPerBuilding = Math.max(maxVerticesPerBuilding, featureVertices);
   }
 
   const widthKm = haversineDistance(
@@ -85,6 +98,8 @@ function analyzeAreaAndComplexity(geojson: any): ScaleAnalysis {
     geographicBounds: { minLat, maxLat, minLon, maxLon, widthKm, heightKm, areaKm2 },
     complexity: {
       buildingCount,
+      roadCount,
+      parkCount,
       totalVertices,
       averageVerticesPerBuilding: Math.round(totalVertices / buildingCount),
       maxVerticesPerBuilding
@@ -96,11 +111,48 @@ function analyzeAreaAndComplexity(geojson: any): ScaleAnalysis {
     dimensions: `${widthKm.toFixed(2)}km x ${heightKm.toFixed(2)}km`,
     area: `${areaKm2.toFixed(2)} km²`,
     buildings: buildingCount,
+    roads: roadCount,
+    parks: parkCount,
     scale: `1:${recommendedScale.factor}`,
     finalSize: recommendedScale.finalSizeDescription
   });
 
   return analysis;
+}
+
+function identifyFeatureType(feature: any): 'building' | 'road' | 'park' | 'other' {
+  const props = feature.properties || {};
+
+  if (props.building || props['building:levels'] || props.height) {
+    return 'building';
+  }
+
+  if (props.highway || props.road || props.street || 
+    props.landuse === 'highway' || props.amenity === 'parking') {
+    return 'road';
+  }
+
+  if (props.leisure === 'park' || props.landuse === 'grass' || props.landuse === 'forest' || props.natural === 'wood' || props.amenity === 'park' || props.leisure === 'garden' || props.landuse === 'recreation_ground') {
+    return 'park';
+  }
+
+  return 'other';
+}
+
+function getRoadHeight(props: any, scaleFactor: number): number {
+  const baseHeight = 0.1;
+  return baseHeight / scaleFactor;
+}
+
+function getParkHeight(props: any, scaleFactor: number): number {
+  let baseHeight = 0.1;
+
+  if (props.natural === 'wood' || props.landuse === 'forest') {
+    baseHeight = 2.0;
+  } else if (props.leisure === 'garden') {
+    baseHeight = 0.3;
+  } 
+  return baseHeight / scaleFactor;
 }
 
 function calculateOptimalScale(params: {
@@ -493,6 +545,9 @@ export const POST: APIRoute = async ({ request }) => {
     let processedCount = 0;
     let errorCount = 0;
     let validMeshCount = meshes.length;
+    let buildingMeshCount = 0;
+    let roadMeshCount = 0;
+    let parkMeshCount = 0;
     let maxProcessingTime = needsBase ? 30000 : 25000;
 
     for (const feature of geojson.features) {
@@ -510,6 +565,8 @@ export const POST: APIRoute = async ({ request }) => {
         errorCount++;
         continue;
       }
+
+      const featureType = identifyFeatureType(feature);
 
       let polygons: any[] = [];
       if (geom.type === 'Polygon') polygons = [geom.coordinates];
@@ -532,7 +589,21 @@ export const POST: APIRoute = async ({ request }) => {
           continue;
         }
 
-        const height = getHeight(feature.properties) / scaleFactor;
+        let height: number;
+        switch (featureType) {
+          case 'building':
+            height = getHeight(feature.properties) / scaleFactor;
+            break;
+          case 'road':
+            height = getHeight(feature.properties) / scaleFactor;
+            break;
+          case 'park':
+            height = getHeight(feature.properties) / scaleFactor;
+            break;
+          default:
+            height = 0.5 / scaleFactor;
+        }
+
         if (height <= 0) {
           errorCount++;
           continue;
@@ -571,6 +642,18 @@ export const POST: APIRoute = async ({ request }) => {
           if (mesh && isValidMesh(mesh)) {
             meshes.push(mesh);
             validMeshCount++;
+
+            switch (featureType) {
+              case 'building':
+                buildingMeshCount++;
+                break;
+              case 'road':
+                roadMeshCount++;
+                break;
+              case 'park':
+                parkMeshCount++;
+                break;
+            }
           } else {
             errorCount++;
           }
