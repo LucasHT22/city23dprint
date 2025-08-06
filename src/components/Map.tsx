@@ -28,6 +28,11 @@ export default function Map({ onSTLGenerated }: MapProps) {
   const [status, setStatus] = useState('');
   const [generating, setGenerating] = useState(false);
   const [loadingBuildings, setLoadingBuildings] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const searchMarkerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
     const map = L.map('map').setView([-23.5505, -46.6333], 13);
@@ -84,10 +89,71 @@ export default function Map({ onSTLGenerated }: MapProps) {
       setStatus('Area selected. Click "Generate STL" to continue.');
     });
 
+    map.on('click', () => {
+      setShowResults(false);
+    });
+
     return () => {
       map.remove();
     };
   }, []);
+
+  async function searchLocation(query:string) {
+    if (!query.trim) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+    setSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+      );
+
+      if (!response.ok) throw new Error('Search failed');
+      
+      const results = await response.json();
+      setSearchResults(results);
+      setShowResults(results.length > 0);
+    } catch (error) {
+      setSearchResults([]);
+      setShowResults(false);
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function handleSearchInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    const timeoutId = setTimeout(() => {
+      searchLocation(query);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }
+
+  function selectSearchResult(result: any) {
+    const lat = parseFloat(result.lat);
+    const lon = parseFloat(result.lon);
+    
+    if (mapRef.current) {
+      if (searchMarkerRef.current) {
+        mapRef.current.removeLayer(searchMarkerRef.current);
+      }
+
+      searchMarkerRef.current = L.marker([lat, lon])
+        .addTo(mapRef.current)
+        .bindPopup(result.display_name)
+        .openPopup();
+
+      mapRef.current.setView([lat, lon], 15);
+    }
+
+    setSearchQuery(result.display_name);
+    setShowResults(false);
+  }
 
   async function fetchBuildingsFromOverpass(polygon: GeoJSON.Polygon) {
     const coords = polygon.coordinates[0];
@@ -174,8 +240,69 @@ export default function Map({ onSTLGenerated }: MapProps) {
   }
 
   return (
-    <div>
-      <div id="map" style={{ height: 600 }} />
+    <><div style={{ position: 'relative', marginBottom: 10, zIndex: 1000 }}>
+      <div style={{ position: 'relative', marginBottom: 10, zIndex: 1000 }}>
+        <div style={{ display: 'flex', alignItems: 'center', background: 'white', border: '2px solid #ddd', borderRadius: 8, padding: '8px 12px' }}>
+          <input 
+            type="text" 
+            placeholder="Search an address..." 
+            value={searchQuery} 
+            onChange={handleSearchInput} 
+            style={{ 
+              flex: 1, 
+              border: 'none', 
+              outline: 'none', 
+              fontSize: 16, 
+              backgroundColor: 'transparent' 
+            }} 
+          />
+          {searching && (
+            <div style={{ marginLeft: 8, fontSize: 14, color: '#666'}}>
+              Searching...
+            </div>
+          )}
+        </div>
+        {showResults && searchResults.length > 0 && (
+          <div style={{ 
+            position: 'absolute', 
+            top: '100%', 
+            left: 0, 
+            right: 0, 
+            backgroundColor: 'white', 
+            border: '1px solid #ddd', 
+            borderRadius: 8, 
+            maxHeight: 200, 
+            overflowY: 'auto', 
+            zIndex: 1001 
+          }}>
+            {searchResults.map((result, index) => (
+              <div 
+                key={index} 
+                onClick={() => selectSearchResult(result)} 
+                style={{ 
+                  padding: '12px 16px', 
+                  borderBottom: index < searchResults.length - 1 ? '1px solid #eee' : 'none', 
+                  cursor: 'pointer', 
+                  fontSize: 14, 
+                  lineHeight: 1.5 
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f5f5f5';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'white';
+                }}
+              >
+                <div style={{ color: '#666', fontSize: 12 }}>
+                  {result.display_name}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div id="map" style={{ height: 600 }}></div>
 
       {status && (
         <div
@@ -208,10 +335,10 @@ export default function Map({ onSTLGenerated }: MapProps) {
           {loadingBuildings
             ? 'Loading buildings...'
             : generating
-            ? 'Generating STL...'
-            : 'Generate STL'}
+              ? 'Generating STL...'
+              : 'Generate STL'}
         </button>
       )}
-    </div>
+      </div></>
   );
 }
